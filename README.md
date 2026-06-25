@@ -66,8 +66,10 @@ The system is built on a highly normalized MySQL schema ensuring data integrity:
 3.  Configure Environment:
       - adding your database credentials.
 4.  Install Dependencies:
+    ```bash
      pip install -r requirements.txt
 5.  Run the Application:
+    ```bash
      python manage.py runserver
 
 
