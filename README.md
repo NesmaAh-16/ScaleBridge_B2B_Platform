@@ -72,8 +72,5 @@ The system is built on a highly normalized MySQL schema ensuring data integrity:
     ```bash
      python manage.py runserver
 
-
-
-
 ScaleBridge: Scaling local impact through global connections.
 
