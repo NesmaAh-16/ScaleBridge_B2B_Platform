@@ -21,7 +21,7 @@ ScaleBridge is a community-driven B2B platform designed to transform isolated mi
 
 ## 👥 The Team
 
-*   **Nesma Ah-16**, **Mahmood:**, **Shaimaa:** are all Fullstack Developers
+*   **Nesma Ah-16**, **Mahmood**, **Shaimaa:** are all Fullstack Developers
 
 ---
 
