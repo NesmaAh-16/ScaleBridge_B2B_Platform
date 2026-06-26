@@ -1,192 +1,76 @@
-{% extends 'accounts/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
 
 {% block content %}
+<div class="space-y-8">
 
-<div class="flex min-h-screen">
-
-    <!-- ── SIDEBAR ── -->
-    <aside class="w-64 bg-white flex flex-col shrink-0" style="box-shadow: 4px 0 12px rgba(0,0,0,0.08);">
-
-        <!-- Logo area -->
-        <div class="flex flex-col items-center pt-8 pb-6 px-4"
-             style="background: linear-gradient(160deg, rgb(248,250,252) 0%, white 100%);">
-            <img src="{% static 'imgs/logo.png' %}" alt="ScaleBridge"
-                 class="h-32 w-32 object-contain drop-shadow-md">
-        </div>
-
-        <!-- Green accent divider -->
-        <div class="mx-5 h-px rounded-full"
-             style="background: linear-gradient(90deg, transparent, rgb(144,191,73), transparent);"></div>
-
-        <!-- User card -->
-        <div class="mx-3 mt-4 mb-2 rounded-xl p-4"
-             style="background: linear-gradient(135deg, rgb(248,250,252), white); border: 1px solid rgba(10,54,88,0.07);">
-            <div class="flex items-center space-x-3">
-                <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-sm"
-                     style="background: linear-gradient(135deg, rgb(10,54,88), rgb(38,102,117));">
-                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                </div>
-                <div class="min-w-0">
-                    <p class="font-semibold text-sb-navy text-sm truncate">{{ user.first_name }} {{ user.last_name }}</p>
-                    <span class="inline-block mt-0.5 text-xs font-bold px-2 py-0.5 rounded-full"
-                          style="background: rgb(144,191,73); color: rgb(10,54,88);">
-                        {% if user.role == 'SmallBusiness' %}SMALL BUSINESS
-                        {% elif user.role == 'EnterpriseBuyer' %}ENTERPRISE
-                        {% else %}{{ user.role|upper }}{% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Nav label -->
-        <p class="px-6 pt-4 pb-2 text-xs font-semibold tracking-widest uppercase"
-           style="color: rgb(144,191,73);">Navigation</p>
-
-        <!-- Nav links -->
-        <nav class="flex-1 px-3 space-y-1">
-
-            {% if user.role == 'SmallBusiness' or user.is_superuser %}
-            <a href="#"
-               class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-150 group"
-               style="color: rgb(10,54,88);"
-               onmouseover="this.style.background='linear-gradient(90deg,rgba(144,191,73,0.12),transparent)'; this.style.borderLeft='3px solid rgb(144,191,73)'; this.style.paddingLeft='9px';"
-               onmouseout="this.style.background=''; this.style.borderLeft='3px solid transparent'; this.style.paddingLeft='9px';">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:rgb(144,191,73)">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9.75L12 3l9 6.75V21a.75.75 0 01-.75.75H3.75A.75.75 0 013 21V9.75z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 21V12h6v9"/>
-                </svg>
-                <span class="text-sm font-medium">Small Business</span>
-            </a>
-            {% endif %}
-
-            {% if user.role == 'EnterpriseBuyer' or user.is_superuser %}
-            <a href="#"
-               class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-150"
-               style="color: rgb(10,54,88); border-left: 3px solid transparent;"
-               onmouseover="this.style.background='linear-gradient(90deg,rgba(38,102,117,0.10),transparent)'; this.style.borderLeft='3px solid rgb(38,102,117)'; this.style.paddingLeft='9px';"
-               onmouseout="this.style.background=''; this.style.borderLeft='3px solid transparent'; this.style.paddingLeft='12px';">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:rgb(38,102,117)">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
-                </svg>
-                <span class="text-sm font-medium">Enterprise</span>
-            </a>
-            {% endif %}
-
-            {% if user.role == 'Admin' or user.is_superuser %}
-            <a href="#"
-               class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-150"
-               style="color: rgb(10,54,88); border-left: 3px solid transparent;"
-               onmouseover="this.style.background='linear-gradient(90deg,rgba(10,54,88,0.08),transparent)'; this.style.borderLeft='3px solid rgb(10,54,88)'; this.style.paddingLeft='9px';"
-               onmouseout="this.style.background=''; this.style.borderLeft='3px solid transparent'; this.style.paddingLeft='12px';">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:rgb(10,54,88)">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
-                </svg>
-                <span class="text-sm font-medium">Admin Panel</span>
-            </a>
-            {% endif %}
-
-        </nav>
-
-        <!-- Logout -->
-        <div class="px-4 py-5">
-            <a href="{% url 'accounts:logout' %}"
-               class="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-               style="background: linear-gradient(135deg, rgb(10,54,88), rgb(38,102,117)); color: white;"
-               onmouseover="this.style.opacity='0.88';"
-               onmouseout="this.style.opacity='1';">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
-                </svg>
-                <span>Logout</span>
-            </a>
-        </div>
-
-    </aside>
-
-    <!-- ── MAIN CONTENT ── -->
-    <div class="flex-1 bg-sb-light flex flex-col">
-
-        <!-- Top bar -->
-        <div class="bg-sb-navy px-8 py-3 flex items-center justify-between shadow">
-            <p class="text-white font-semibold tracking-widest text-xs uppercase">Dashboard</p>
-            <p class="text-sb-light text-sm">Welcome back, <span class="font-bold text-sb-green">{{ user.first_name }}</span></p>
-        </div>
-
-        <!-- Page content -->
-        <main class="flex-1 px-8 py-8 space-y-6">
-
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Account Role</p>
-                    <p class="text-xl font-bold text-sb-navy">
-                        {% if user.role == 'SmallBusiness' %}Small Business
-                        {% elif user.role == 'EnterpriseBuyer' %}Enterprise Buyer
-                        {% else %}{{ user.role }}{% endif %}
-                    </p>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Email</p>
-                    <p class="text-sm font-semibold text-sb-teal break-all">{{ user.email }}</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Member Since</p>
-                    <p class="text-sm font-semibold text-sb-navy">{{ user.created_at|date:"M d, Y" }}</p>
-                </div>
-            </div>
-
-            <!-- Ecosystem Access -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="text-sm font-bold text-sb-navy mb-4 tracking-widest uppercase">
-                    Your Ecosystem Access
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    {% if user.role == 'SmallBusiness' or user.is_superuser %}
-                    <div class="flex items-center space-x-3 p-4 rounded-lg bg-sb-light border border-gray-100">
-                        <div class="w-10 h-10 rounded-lg bg-sb-green flex items-center justify-center shrink-0">
-                            <span class="text-sb-navy font-bold text-xs">SB</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sb-navy text-sm">Small Business Dashboard</p>
-                            <p class="text-xs text-gray-500">Manage buying circles &amp; products</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if user.role == 'EnterpriseBuyer' or user.is_superuser %}
-                    <div class="flex items-center space-x-3 p-4 rounded-lg bg-sb-light border border-gray-100">
-                        <div class="w-10 h-10 rounded-lg bg-sb-teal flex items-center justify-center shrink-0">
-                            <span class="text-white font-bold text-xs">EB</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sb-navy text-sm">Enterprise Marketplace</p>
-                            <p class="text-xs text-gray-500">Browse suppliers &amp; place bulk orders</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if user.role == 'Admin' or user.is_superuser %}
-                    <div class="flex items-center space-x-3 p-4 rounded-lg bg-sb-light border border-gray-100">
-                        <div class="w-10 h-10 rounded-lg bg-sb-navy flex items-center justify-center shrink-0">
-                            <span class="text-white font-bold text-xs">AD</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sb-navy text-sm">Admin Moderation Panel</p>
-                            <p class="text-xs text-gray-500">Manage users &amp; verify businesses</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                </div>
-            </div>
-
-        </main>
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Account Role</p>
+      <p class="text-xl font-black text-sb-navy">
+        {% if user.role == 'SmallBusiness' %}Small Business
+        {% elif user.role == 'EnterpriseBuyer' %}Enterprise Buyer
+        {% else %}{{ user.role }}{% endif %}
+      </p>
     </div>
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Email</p>
+      <p class="text-sm font-bold text-sb-teal break-all">{{ user.email }}</p>
+    </div>
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Member Since</p>
+      <p class="text-sm font-bold text-sb-navy">{{ user.created_at|date:"M d, Y" }}</p>
+    </div>
+  </div>
+
+  <!-- Ecosystem Access -->
+  <div class="bg-white rounded-[2rem] glass-stroke p-8">
+    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">
+      Your Ecosystem Access
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {% if user.role == 'SmallBusiness' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-green flex items-center justify-center shrink-0">
+          <span class="text-sb-navy font-black text-xs">SB</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Small Business Dashboard</p>
+          <p class="text-xs text-slate-400 mt-0.5">Manage buying circles &amp; products</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if user.role == 'EnterpriseBuyer' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-teal flex items-center justify-center shrink-0">
+          <span class="text-white font-black text-xs">EB</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Enterprise Marketplace</p>
+          <p class="text-xs text-slate-400 mt-0.5">Browse suppliers &amp; place bulk orders</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if user.role == 'Admin' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-navy flex items-center justify-center shrink-0">
+          <span class="text-white font-black text-xs">AD</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Admin Moderation Panel</p>
+          <p class="text-xs text-slate-400 mt-0.5">Manage users &amp; verify businesses</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
 
 </div>
-
 {% endblock %}
