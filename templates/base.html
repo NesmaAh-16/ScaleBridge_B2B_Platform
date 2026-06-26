@@ -1,0 +1,403 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScaleBridge | Vanguard Console</title>
+
+    <!-- Premium Font Stack -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['"Inter"', "sans-serif"] },
+            colors: {
+              "sb-navy": "rgb(10, 54, 88)",
+              "sb-green": "rgb(144, 191, 73)",
+              "sb-teal": "rgb(38, 102, 117)",
+              "sb-neutral": "rgb(248, 250, 252)",
+            },
+            boxShadow: {
+              "soft-xl":
+                "0 20px 25px -5px rgba(10, 54, 88, 0.05), 0 8px 10px -6px rgba(10, 54, 88, 0.03)",
+              glow: "0 0 20px rgba(144, 191, 73, 0.3)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .glass-stroke {
+        box-shadow:
+          inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
+          0 10px 30px -10px rgba(10, 54, 88, 0.1);
+      }
+      .text-glow-green {
+        text-shadow: 0 0 15px rgba(144, 191, 73, 0.5);
+      }
+      .grainy-overlay {
+        background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+        opacity: 0.03;
+      }
+      @keyframes orbit {
+        from {
+          transform: rotate(0deg) translateX(8px) rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg) translateX(8px) rotate(-360deg);
+        }
+      }
+      .orbit-dot {
+        animation: orbit 4s linear infinite;
+      }
+
+      [x-cloak] {
+        display: none !important;
+      }
+
+      /* The Industrial Gradient Sidebar */
+      .sidebar-vanguard {
+        background: linear-gradient(
+          190deg,
+          #0a3658 0%,
+          #1a4a6e 40%,
+          #266675 100%
+        );
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* Glass-Stroke for Sidebar Items */
+      .nav-item-active {
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        border-left: 3px solid rgb(144, 191, 73);
+      }
+
+      /* Micro-textures */
+      .bg-grid-subtle {
+        background-image: radial-gradient(
+          rgba(10, 54, 88, 0.05) 1px,
+          transparent 0
+        );
+        background-size: 30px 30px;
+      }
+
+      .glass-blur {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(10, 54, 88, 0.05);
+      }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+    </style>
+  </head>
+  <body
+    class="bg-sb-neutral font-sans text-sb-navy antialiased bg-grid-subtle"
+    x-data="{ sidebarCollapsed: false }"
+  >
+    <div class="flex h-screen overflow-hidden">
+      <!-- SIDEBAR -->
+
+      <aside
+        :class="sidebarCollapsed ? 'w-24' : 'w-80'"
+        class="sidebar-vanguard hidden md:flex flex-col text-white transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] relative z-40"
+        x-data="{ userMenuOpen: false }"
+      >
+        <!-- Logo Area -->
+        <div class="h-28 flex items-center px-8 mb-4">
+          <div
+            class="bg-white p-2.5 rounded-2xl shadow-2xl shrink-0 group transition-all hover:scale-110 hover:rotate-3 ring-4 ring-white/5"
+          >
+            <img
+              src="{% static 'images/logo.png' %}"
+              alt="SB"
+              class="w-10 h-10 object-contain"
+            />
+          </div>
+          <div
+            x-show="!sidebarCollapsed"
+            x-transition.opacity.duration.300ms
+            class="ml-5 overflow-hidden"
+          >
+            <h1 class="text-2xl font-black tracking-tighter leading-none">
+              ScaleBridge
+            </h1>
+            <span
+              class="text-[10px] font-bold text-sb-green uppercase tracking-[0.3em] opacity-80"
+              >Financial OS</span
+            >
+          </div>
+        </div>
+
+        <!-- Workspace Switcher (Refined) -->
+        <div class="px-6 mb-10" x-show="!sidebarCollapsed">
+          <button
+            class="w-full flex items-center justify-between p-4 rounded-[1.25rem] bg-white/5 border border-white/10 hover:bg-white/10 transition-all group relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-sb-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+            ></div>
+            <div class="flex items-center gap-3 relative z-10">
+              <div
+                class="w-2.5 h-2.5 rounded-full bg-sb-green shadow-[0_0_10px_rgba(144,191,73,0.8)] animate-pulse"
+              ></div>
+              <span
+                class="text-[11px] font-black uppercase tracking-widest text-white/90"
+                >Main Network</span
+              >
+            </div>
+            <i
+              data-lucide="chevrons-up-down"
+              class="w-4 h-4 text-white/20 group-hover:text-sb-green transition-colors"
+            ></i>
+          </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto no-scrollbar">
+          <p
+            x-show="!sidebarCollapsed"
+            class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] px-5 mb-4"
+          >
+            Command Center
+          </p>
+
+          <a
+            href="#"
+            class="nav-item-active flex items-center gap-4 px-5 py-4 rounded-2xl text-white transition-all group"
+          >
+            <i
+              data-lucide="layout-grid"
+              class="w-5 h-5 text-sb-green group-hover:scale-110 transition-transform"
+            ></i>
+            <span x-show="!sidebarCollapsed" class="font-bold text-sm"
+              >Operations Deck</span
+            >
+          </a>
+
+          <a
+            href="#"
+            class="flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all group"
+          >
+            <i
+              data-lucide="shopping-bag"
+              class="w-5 h-5 group-hover:scale-110 transition-transform"
+            ></i>
+            <span x-show="!sidebarCollapsed" class="font-semibold text-sm"
+              >Marketplace</span
+            >
+          </a>
+
+          <a
+            href="#"
+            class="flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all group"
+          >
+            <i
+              data-lucide="refresh-cw"
+              class="w-5 h-5 group-hover:rotate-180 transition-transform duration-700"
+            ></i>
+            <span x-show="!sidebarCollapsed" class="font-semibold text-sm"
+              >Buying Circles</span
+            >
+            <span
+              x-show="!sidebarCollapsed"
+              class="ml-auto bg-sb-green text-sb-navy text-[10px] font-black px-2.5 py-1 rounded-lg border border-white/10"
+              >12</span
+            >
+          </a>
+
+          <div class="pt-10 px-5" x-show="!sidebarCollapsed">
+            <p
+              class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mb-4"
+            >
+              Verification
+            </p>
+          </div>
+
+          <a
+            href="#"
+            class="flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all group"
+          >
+            <i
+              data-lucide="shield-check"
+              class="w-5 h-5 group-hover:text-sb-green transition-colors"
+            ></i>
+            <span x-show="!sidebarCollapsed" class="font-semibold text-sm"
+              >Trust Engine</span
+            >
+          </a>
+        </nav>
+
+        <!-- ACCOUNT MANAGEMENT SECTION (Interactive) -->
+        <div class="p-6 mt-auto relative">
+          <!-- Upward Dropdown Menu -->
+          <div
+            x-show="userMenuOpen"
+            @click.away="userMenuOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+            class="absolute bottom-full left-6 right-6 mb-4 bg-sb-navy/90 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] shadow-2xl p-3 z-50"
+            x-cloak
+          >
+            <div class="space-y-1">
+              <a
+                href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
+              >
+                <i data-lucide="user-cog" class="w-4 h-4"></i> Profile Settings
+              </a>
+              <a
+                href="#"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
+              >
+                <i data-lucide="credit-card" class="w-4 h-4"></i> Billing &
+                Plans
+              </a>
+              <div class="my-2 border-t border-white/5"></div>
+
+              <!-- LOGOUT FORM (Standard Django Approach) -->
+              <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-xs font-bold text-red-400 transition-all group"
+                >
+                  <i
+                    data-lucide="log-out"
+                    class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                  ></i>
+                  Confirm Logout
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- User Toggle Button -->
+          <div
+            @click="userMenuOpen = !userMenuOpen"
+            class="flex items-center gap-4 p-4 rounded-[1.5rem] bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 cursor-pointer transition-all group relative overflow-hidden"
+          >
+            <div
+              class="w-12 h-12 rounded-2xl bg-sb-green flex items-center justify-center text-sb-navy font-black shadow-lg shadow-sb-green/20 shrink-0 border-2 border-white/10 group-hover:scale-105 transition-transform"
+            >
+              {{ user.email|slice:":1"|upper|default:"A" }}
+            </div>
+
+            <div x-show="!sidebarCollapsed" class="overflow-hidden flex-1">
+              <p class="text-xs font-black text-white truncate">Artisan Hub</p>
+              <p
+                class="text-[9px] text-sb-green/80 font-black uppercase tracking-widest"
+              >
+                Verified Tier 1
+              </p>
+            </div>
+
+            <i
+              data-lucide="more-vertical"
+              x-show="!sidebarCollapsed"
+              class="w-4 h-4 text-white/20 group-hover:text-white transition-colors"
+            ></i>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN WINDOW -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <header
+          class="h-24 glass-blur flex items-center justify-between px-10 sticky top-0 z-30"
+        >
+          <div class="flex items-center gap-8">
+            <button
+              @click="sidebarCollapsed = !sidebarCollapsed"
+              class="p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all"
+            >
+              <i
+                data-lucide="chevron-left"
+                class="w-5 h-5 transition-transform duration-500"
+                :class="sidebarCollapsed ? 'rotate-180' : ''"
+              ></i>
+            </button>
+            <div>
+              <h2 class="text-2xl font-black text-sb-navy tracking-tight">
+                {% block page_title %}Network Insight{% endblock %}
+              </h2>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span
+                  class="w-2 h-2 rounded-full bg-sb-green animate-pulse"
+                ></span>
+                <p
+                  class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.15em]"
+                >
+                  System Live: Global Procurement Active
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <!-- Global Command Search -->
+            <div
+              class="hidden lg:flex items-center bg-gray-100/50 border border-gray-200 rounded-2xl px-5 py-3 w-72 focus-within:ring-4 focus-within:ring-sb-navy/5 focus-within:bg-white transition-all group"
+            >
+              <i
+                data-lucide="command"
+                class="w-4 h-4 text-gray-400 group-focus-within:text-sb-navy transition-colors"
+              ></i>
+              <input
+                type="text"
+                placeholder="Search Console..."
+                class="bg-transparent border-none text-xs ml-3 focus:outline-none w-full font-semibold"
+              />
+            </div>
+
+            <button
+              class="p-3.5 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all relative group"
+            >
+              <i
+                data-lucide="bell-ring"
+                class="w-5 h-5 text-gray-400 group-hover:text-sb-teal"
+              ></i>
+              <span
+                class="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-sb-green border-2 border-white rounded-full"
+              ></span>
+            </button>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+          <div class="max-w-[1500px] mx-auto">
+            {% block content %}{% endblock %}
+          </div>
+        </main>
+      </div>
+    </div>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
