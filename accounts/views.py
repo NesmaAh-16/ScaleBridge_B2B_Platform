@@ -3,7 +3,8 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
-from .models import Business
+from .models import User, Business
+from .decorators import role_required
 
 
 def register_view(request):
@@ -47,7 +48,33 @@ def profile_view(request):
 
 @login_required
 def dashboard_view(request):
-    return render(request, 'dashboard.html')
+    if request.user.is_superuser or request.user.role == 'Admin':
+        return redirect('accounts:admin_dashboard')
+    if request.user.role in ('SmallBusiness', 'EnterpriseBuyer'):
+        return redirect('accounts:business_dashboard')
+    return redirect('accounts:profile')
+
+
+@login_required
+@role_required('Admin')
+def admin_dashboard_view(request):
+    total_users = User.objects.count()
+    total_businesses = Business.objects.count()
+    pending_businesses = Business.objects.filter(verification_status='pending').count()
+    active_businesses = Business.objects.filter(verification_status='approved').count()
+    return render(request, 'accounts/admin_dashboard.html', {
+        'total_users': total_users,
+        'total_businesses': total_businesses,
+        'pending_businesses': pending_businesses,
+        'active_businesses': active_businesses,
+    })
+
+
+@login_required
+@role_required('SmallBusiness', 'EnterpriseBuyer')
+def business_dashboard_view(request):
+    business = Business.objects.filter(user=request.user).first()
+    return render(request, 'dashboard.html', {'business': business})
 
 
 @login_required
