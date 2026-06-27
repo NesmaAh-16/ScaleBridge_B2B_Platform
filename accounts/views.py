@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
+from .models import Business
 
 
 def register_view(request):
@@ -47,3 +48,42 @@ def profile_view(request):
 @login_required
 def dashboard_view(request):
     return render(request, 'dashboard.html')
+
+
+@login_required
+def business_profile(request):
+    business = Business.objects.filter(user=request.user).first()
+
+    if request.method == 'POST':
+        business_name = request.POST.get('business_name', '').strip()
+        location = request.POST.get('location', '').strip()
+        business_type = request.POST.get('business_type', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if not business_name or not location or not business_type:
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('accounts:business_profile')
+
+        if business:
+            business.business_name = business_name
+            business.location = location
+            business.business_type = business_type
+            business.description = description
+            business.save()
+            messages.success(request, 'Business profile updated successfully.')
+        else:
+            Business.objects.create(
+                user=request.user,
+                business_name=business_name,
+                location=location,
+                business_type=business_type,
+                description=description,
+                verification_status='pending'
+            )
+            messages.success(request, 'Business profile saved successfully.')
+
+        return redirect('accounts:business_profile')
+
+    return render(request, 'accounts/business_profile.html', {
+        'business': business
+    })
