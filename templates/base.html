@@ -265,19 +265,14 @@
             x-cloak
           >
             <div class="space-y-1">
+              {% if not user.is_superuser and user.role != 'Admin' %}
               <a
-                href="#"
+                href="{% url 'accounts:business_profile' %}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
               >
-                <i data-lucide="user-cog" class="w-4 h-4"></i> Profile Settings
+                <i data-lucide="briefcase" class="w-4 h-4"></i> Business Profile
               </a>
-              <a
-                href="#"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
-              >
-                <i data-lucide="credit-card" class="w-4 h-4"></i> Billing &
-                Plans
-              </a>
+              {% endif %}
               <div class="my-2 border-t border-white/5"></div>
 
               <!-- LOGOUT FORM (Standard Django Approach) -->
