@@ -5,6 +5,8 @@ from django.contrib import messages
 from .forms import RegisterForm, LoginForm
 from .models import User, Business
 from .decorators import role_required
+from django.utils.html import escape  
+from django.db import DatabaseError
 
 
 def register_view(request):
@@ -82,10 +84,11 @@ def business_profile(request):
     business = Business.objects.filter(user=request.user).first()
 
     if request.method == 'POST':
-        business_name = request.POST.get('business_name', '').strip()
-        location = request.POST.get('location', '').strip()
+        # Use escape() to turn <script> into &lt;script&gt;
+        business_name = escape(request.POST.get('business_name', '').strip())
+        location = escape(request.POST.get('location', '').strip())
         business_type = request.POST.get('business_type', '').strip()
-        description = request.POST.get('description', '').strip()
+        description = escape(request.POST.get('description', '').strip())
 
         if not business_name or not location or not business_type:
             messages.error(request, 'Please fill in all required fields.')
@@ -108,6 +111,51 @@ def business_profile(request):
                 verification_status='pending'
             )
             messages.success(request, 'Business profile saved successfully.')
+
+        return redirect('accounts:business_profile')
+
+    return render(request, 'accounts/business_profile.html', {
+        'business': business
+    })
+
+@login_required
+def business_profile(request):
+    business = Business.objects.filter(user=request.user).first()
+
+    if request.method == 'POST':
+        business_name = escape(request.POST.get('business_name', '').strip())
+        location = escape(request.POST.get('location', '').strip())
+        business_type = request.POST.get('business_type', '').strip()
+        description = escape(request.POST.get('description', '').strip())
+
+        if not business_name or not location or not business_type:
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('accounts:business_profile')
+
+        # Wrap the database operations in a try block
+        try:
+            if business:
+                business.business_name = business_name
+                business.location = location
+                business.business_type = business_type
+                business.description = description
+                business.save() # The ORM handles SQL injection protection here
+                messages.success(request, 'Business profile updated successfully.')
+            else:
+                Business.objects.create(
+                    user=request.user,
+                    business_name=business_name,
+                    location=location,
+                    business_type=business_type,
+                    description=description,
+                    verification_status='pending'
+                )
+                messages.success(request, 'Business profile saved successfully.')
+        
+        # The Safety Net for SQL/Database integrity errors
+        except DatabaseError:
+            messages.error(request, 'A database error occurred. Your input may contain invalid characters.')
+            return redirect('accounts:business_profile')
 
         return redirect('accounts:business_profile')
 
