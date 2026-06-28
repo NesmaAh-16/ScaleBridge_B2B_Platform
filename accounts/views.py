@@ -7,6 +7,7 @@ from .models import User, Business
 from .decorators import role_required
 from django.utils.html import escape  
 from django.db import DatabaseError
+from operations.models import BuyingCircle
 
 
 def register_view(request):
@@ -76,7 +77,12 @@ def admin_dashboard_view(request):
 @role_required('SmallBusiness', 'EnterpriseBuyer')
 def business_dashboard_view(request):
     business = Business.objects.filter(user=request.user).first()
-    return render(request, 'dashboard.html', {'business': business})
+
+    buying_circles = BuyingCircle.objects.select_related('product','created_by').all()
+
+    return render(request, 'dashboard.html', {
+        'business': business,
+        'buying_circles': buying_circles})
 
 
 @login_required
