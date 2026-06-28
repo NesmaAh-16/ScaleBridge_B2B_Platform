@@ -1,6 +1,6 @@
 from functools import wraps
 from django.shortcuts import redirect
-from django.contrib import messages
+from django.http import HttpResponseForbidden
 
 
 def role_required(*roles):
@@ -9,9 +9,12 @@ def role_required(*roles):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('accounts:login')
+
             if not (request.user.is_superuser or request.user.role in roles):
-                messages.error(request, 'You do not have permission to access this page.')
-                return redirect('accounts:profile')
+                return HttpResponseForbidden(
+                    '403 Forbidden: You do not have permission to access this page.'
+                )
+
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
