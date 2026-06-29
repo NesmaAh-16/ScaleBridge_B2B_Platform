@@ -57,7 +57,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,3 +118,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# 9000 seconds = 1/4 hour. 
+SESSION_COOKIE_AGE = 9000
+
+# 2. If True, the user is logged out as soon as they close their browser tab.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# 3. If True, the 1-hour timer RESETS every time the user clicks a link.
+# (This is "Inactivity Timeout")
+SESSION_SAVE_EVERY_REQUEST = True
+# Auth redirects
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/accounts/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'

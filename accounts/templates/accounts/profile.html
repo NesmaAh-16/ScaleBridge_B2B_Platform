@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Account Role</p>
+      <p class="text-xl font-black text-sb-navy">
+        {% if user.role == 'SmallBusiness' %}Small Business
+        {% elif user.role == 'EnterpriseBuyer' %}Enterprise Buyer
+        {% else %}{{ user.role }}{% endif %}
+      </p>
+    </div>
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Email</p>
+      <p class="text-sm font-bold text-sb-teal break-all">{{ user.email }}</p>
+    </div>
+    <div class="bg-white rounded-[2rem] glass-stroke p-6">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Member Since</p>
+      <p class="text-sm font-bold text-sb-navy">{{ user.created_at|date:"M d, Y" }}</p>
+    </div>
+  </div>
+
+  <!-- Ecosystem Access -->
+  <div class="bg-white rounded-[2rem] glass-stroke p-8">
+    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">
+      Your Ecosystem Access
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {% if user.role == 'SmallBusiness' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-green flex items-center justify-center shrink-0">
+          <span class="text-sb-navy font-black text-xs">SB</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Small Business Dashboard</p>
+          <p class="text-xs text-slate-400 mt-0.5">Manage buying circles &amp; products</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if user.role == 'EnterpriseBuyer' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-teal flex items-center justify-center shrink-0">
+          <span class="text-white font-black text-xs">EB</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Enterprise Marketplace</p>
+          <p class="text-xs text-slate-400 mt-0.5">Browse suppliers &amp; place bulk orders</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if user.role == 'Admin' or user.is_superuser %}
+      <div class="flex items-center gap-4 p-5 rounded-2xl bg-sb-neutral border border-gray-100">
+        <div class="w-12 h-12 rounded-2xl bg-sb-navy flex items-center justify-center shrink-0">
+          <span class="text-white font-black text-xs">AD</span>
+        </div>
+        <div>
+          <p class="font-black text-sb-navy text-sm">Admin Moderation Panel</p>
+          <p class="text-xs text-slate-400 mt-0.5">Manage users &amp; verify businesses</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
