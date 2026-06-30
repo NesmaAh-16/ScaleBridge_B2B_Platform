@@ -69,6 +69,14 @@ class BuyingCircle(models.Model):
         """Returns True if the goal is met or exceeded"""
         return self.current_quantity >= self.target_quantity
 
+    @property
+    def progress_percentage(self):
+        if not self.target_quantity or self.target_quantity <= 0:
+            return 0
+
+        percentage = (self.current_quantity / self.target_quantity) * 100
+        return min(round(percentage), 100)
+    
 class BuyingCircleMember(models.Model):
     buying_circle = models.ForeignKey(BuyingCircle, on_delete=models.CASCADE, related_name='members')
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
