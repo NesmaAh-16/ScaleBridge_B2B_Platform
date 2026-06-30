@@ -97,12 +97,10 @@ def marketplace_list(request):
     return render(request, 'operations/marketplace_list.html', context)
 
 
-=======
 from django.shortcuts import render
 from .models import BuyingCircle
 
 # Create your views here.
->>>>>>> main
 
 def buying_circle_list(request):
     buying_circles = BuyingCircle.objects.select_related(
