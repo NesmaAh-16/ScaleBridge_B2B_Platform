@@ -11,5 +11,4 @@ urlpatterns = [
     path('catalog/delete/<int:pk>/', views.product_delete, name='product_delete'),
     path('marketplace/', views.marketplace_list, name='marketplace'),
     path('circles/', views.buying_circle_list, name='buying_circle_list'),
-    path('buying-circles/', views.buying_circle_list, name='buying_circle_list'),
 ]
