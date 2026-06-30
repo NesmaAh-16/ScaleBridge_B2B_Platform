@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block page_title %}Security Protocol{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white p-12 rounded-[2.5rem] glass-stroke text-center relative overflow-hidden">
+        <!-- Danger Glow -->
+        <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-red-50/50">
+            <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500"></i>
+        </div>
+
+        <h2 class="text-2xl font-black text-sb-navy tracking-tight mb-4 text-glow-red">Authorize Deletion?</h2>
+        <p class="text-gray-400 font-medium mb-8">
+            You are about to remove <span class="text-sb-navy font-bold">"{{ product.name }}"</span> from the permanent catalog. This action cannot be undone.
+        </p>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <button type="submit" class="w-full bg-red-500 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
+                Confirm Purge
+            </button>
+            <a href="{% url 'operations:product_list' %}" class="block w-full text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors py-2">
+                Cancel Protocol
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
