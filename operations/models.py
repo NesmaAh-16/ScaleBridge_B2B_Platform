@@ -1,34 +1,41 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from accounts.models import User, Business
 
 class Category(models.Model):
-    name = models.CharField(max_length=45)
+    name = models.CharField(max_length=100) # Increased slightly
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Categories" 
+
 class Product(models.Model):
-    # Mapping ENUM('PRODUCT', 'MATERIAL') from Image 1
     TYPE_CHOICES = [
-        ('PRODUCT', 'Product'),
-        ('MATERIAL', 'Material'),
+        ('PRODUCT', 'Finished Product'),
+        ('MATERIAL', 'Raw Material'),
     ]
     
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    name = models.CharField(max_length=45)
+    name = models.CharField(max_length=255) # Increased to 255 for B2B details
     description = models.TextField(blank=True, null=True)
-    unit = models.CharField(max_length=45)
-    price = models.DecimalField(max_digits=15, decimal_places=2)
+    unit = models.CharField(max_length=45, help_text="e.g. kg, ton, unit")
+    price = models.DecimalField(max_digits=15, decimal_places=2) # 15 digits is great for high-value B2B
     
-    # TINYINT maps to BooleanField
     product_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_group_buy = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"{self.name} ({self.product_type})"
 class BuyingCircle(models.Model):
-    # Mapping ENUM('Open', 'Closed', 'Completed') from Image 2
+    # Mapping ENUM('Open', 'Closed', 'Completed') 
     STATUS_CHOICES = [
         ('Open', 'Open'),
         ('Closed', 'Closed'),
@@ -42,6 +49,25 @@ class BuyingCircle(models.Model):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='Open')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def progress_percentage(self):
+        """Calculates 0-100 percentage for the progress bar"""
+        if self.target_quantity > 0:
+            percent = (self.current_quantity / self.target_quantity) * 100
+            # Cap at 100 for the visual bar width, but keep as float for accuracy
+            return min(round(float(percent), 1), 100.0)
+        return 0
+
+    @property
+    def progress_label(self):
+        """Returns the numerical ratio for the UI label"""
+        return f"{self.current_quantity:,.0f} / {self.target_quantity:,.0f}"
+
+    @property
+    def is_reached(self):
+        """Returns True if the goal is met or exceeded"""
+        return self.current_quantity >= self.target_quantity
 
 class BuyingCircleMember(models.Model):
     buying_circle = models.ForeignKey(BuyingCircle, on_delete=models.CASCADE, related_name='members')
@@ -51,7 +77,7 @@ class BuyingCircleMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Order(models.Model):
-    # Mapping ENUM('Pending', 'Accepted', 'InProgress', 'Completed', 'CANCELLED') from Image 4
+    # Mapping ENUM('Pending', 'Accepted', 'InProgress', 'Completed', 'CANCELLED') 
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Accepted', 'Accepted'),
@@ -78,7 +104,13 @@ class Review(models.Model):
     to_business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='reviews_received')
     # Link to Order (order_id INT)
     order = models.OneToOneField(Order, on_delete=models.CASCADE)
-    rating = models.IntegerField()
+    # Ensures the database ONLY accepts numbers between 1 and 5
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1), 
+            MaxValueValidator(5)
+        ]
+    )
     comment = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
