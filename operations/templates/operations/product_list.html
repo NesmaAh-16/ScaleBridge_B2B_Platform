@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block page_title %}Product Catalog{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header Section -->
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-3xl font-black text-sb-navy tracking-tighter">My Product & Material Catalog</h1>
+            <p class="text-gray-500 font-medium mt-1">Manage your inventory for marketplace sales and buying circles.</p>
+        </div>
+        <a href="{% url 'operations:product_create' %}" class="flex items-center gap-2 bg-sb-navy text-white px-6 py-3 rounded-2xl font-bold hover:bg-sb-teal hover:shadow-glow transition-all">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Add New Item
+        </a>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white rounded-[2rem] glass-stroke overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Product Details</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-center">Type</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Price Point</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Management</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for item in products %}
+                <tr class="hover:bg-sb-neutral transition-colors group">
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-sb-navy group-hover:bg-sb-green group-hover:text-white transition-all">
+                                <i data-lucide="package" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-sb-navy">{{ item.name }}</p>
+                                <p class="text-xs text-gray-400 font-medium">{{ item.category.name|default:"General" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        {% if item.product_type == 'MATERIAL' %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20">
+                           <span class="w-1.5 h-1.5 rounded-full bg-sb-green"></span> Raw Material
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-teal/10 text-sb-teal text-[10px] font-black uppercase tracking-wider border border-sb-teal/20">
+                           <span class="w-1.5 h-1.5 rounded-full bg-sb-teal"></span> Finished Good
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6">
+                        <p class="font-black text-sb-navy text-lg">${{ item.price }}</p>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per {{ item.unit }}</p>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href="{% url 'operations:product_update' item.pk %}" class="p-2.5 rounded-xl bg-white border border-gray-100 text-sb-navy hover:bg-sb-navy hover:text-white transition-all shadow-sm">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                            <a href="{% url 'operations:product_delete' item.pk %}" class="p-2.5 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-8 py-20 text-center">
+                        <div class="max-w-xs mx-auto">
+                            <i data-lucide="database-zap" class="w-12 h-12 text-gray-200 mx-auto mb-4"></i>
+                            <p class="text-sb-navy font-bold">No assets found</p>
+                            <p class="text-sm text-gray-400 mt-1 mb-6">Your catalog is empty. Start by adding your first material or product.</p>
+                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">Initialize Catalog +</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
