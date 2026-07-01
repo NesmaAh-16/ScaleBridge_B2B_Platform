@@ -6,12 +6,12 @@
     <!-- Header Section -->
     <div class="flex justify-between items-end">
         <div>
-            <h1 class="text-3xl font-black text-sb-navy tracking-tighter">My Product & Material Catalog</h1>
+            <h1 class="text-3xl font-black text-sb-navy tracking-tighter">{{ catalog_title }}</h1>
             <p class="text-gray-500 font-medium mt-1">Manage your inventory for marketplace sales and buying circles.</p>
         </div>
         <a href="{% url 'operations:product_create' %}" class="flex items-center gap-2 bg-sb-navy text-white px-6 py-3 rounded-2xl font-bold hover:bg-sb-teal hover:shadow-glow transition-all">
             <i data-lucide="plus-circle" class="w-5 h-5"></i>
-            Add New Item
+            {{ add_button_label }}
         </a>
     </div>
 
@@ -73,7 +73,7 @@
                             <i data-lucide="database-zap" class="w-12 h-12 text-gray-200 mx-auto mb-4"></i>
                             <p class="text-sb-navy font-bold">No assets found</p>
                             <p class="text-sm text-gray-400 mt-1 mb-6">Your catalog is empty. Start by adding your first material or product.</p>
-                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">Initialize Catalog +</a>
+                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">{{ add_button_label }} +</a>
                         </div>
                     </td>
                 </tr>

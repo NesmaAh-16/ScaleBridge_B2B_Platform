@@ -29,11 +29,28 @@ class ProductForm(forms.ModelForm):
             }),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data.get('is_group_buy') and not cleaned_data.get('min_order_quantity'):
-            self.add_error('min_order_quantity', 'Required when Demand Aggregation is enabled.')
-        return cleaned_data
+    def __init__(self, *args, fixed_product_type=None, allow_group_buy=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fixed_product_type = fixed_product_type
+        if fixed_product_type:
+            self.fields.pop('product_type')
+        self.allow_group_buy = allow_group_buy
+        self.fields.pop('is_group_buy')
+        if not allow_group_buy:
+            self.fields.pop('min_order_quantity')
+        else:
+            self.fields['min_order_quantity'].required = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.fixed_product_type:
+            instance.product_type = self.fixed_product_type
+        instance.is_group_buy = self.allow_group_buy
+        if not self.allow_group_buy:
+            instance.min_order_quantity = None
+        if commit:
+            instance.save()
+        return instance
 
 
 class BuyingCircleForm(forms.Form):

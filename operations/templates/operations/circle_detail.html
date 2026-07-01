@@ -76,9 +76,10 @@
         </div>
     </div>
 
-    <div class="grid md:grid-cols-2 gap-8">
+    <div class="grid {% if is_enterprise %}md:grid-cols-2{% else %}md:grid-cols-1 max-w-xl mx-auto w-full{% endif %} gap-8">
 
-        <!-- Members list -->
+        {% if is_enterprise %}
+        <!-- Members list — supplier only -->
         <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
             <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
                 Members ({{ members.count }})
@@ -109,6 +110,7 @@
             <p class="text-sm text-slate-400 font-medium">No members yet.</p>
             {% endif %}
         </div>
+        {% endif %}
 
         <!-- Join / Leave / Status panel -->
         <div class="space-y-6">

@@ -11,12 +11,30 @@ from .forms import ProductForm, BuyingCircleForm, JoinCircleForm
 # Product CRUD
 # ---------------------------------------------------------------------------
 
+def _ensure_group_buy_circle(product, business):
+    """Auto-start an Open buying circle when demand aggregation is enabled."""
+    if product.is_group_buy and product.min_order_quantity:
+        if not BuyingCircle.objects.filter(product=product, status='Open').exists():
+            BuyingCircle.objects.create(
+                created_by=business,
+                product=product,
+                target_quantity=product.min_order_quantity,
+            )
+
 @login_required
 @role_required('SmallBusiness', 'EnterpriseBuyer')
 def product_list(request):
     business = Business.objects.filter(user=request.user).first()
     products = Product.objects.filter(business=business)
-    return render(request, 'operations/product_list.html', {'products': products})
+
+    is_enterprise = request.user.role == 'EnterpriseBuyer'
+    fixed_product_type_label = 'Raw Material' if is_enterprise else 'Finished Product'
+
+    return render(request, 'operations/product_list.html', {
+        'products': products,
+        'catalog_title': f'My {fixed_product_type_label} Catalog',
+        'add_button_label': f'Add New {fixed_product_type_label}',
+    })
 
 
 @login_required
@@ -28,33 +46,46 @@ def product_create(request):
         messages.error(request, 'You need to complete your business profile before adding products.')
         return redirect('accounts:business_profile')
 
+    is_enterprise = request.user.role == 'EnterpriseBuyer'
+    fixed_product_type = 'MATERIAL' if is_enterprise else 'PRODUCT'
+    fixed_product_type_label = 'Raw Material' if is_enterprise else 'Finished Product'
+    title = f'Add New {fixed_product_type_label}'
+
     if request.method == 'POST':
-        form = ProductForm(request.POST)
+        form = ProductForm(request.POST, fixed_product_type=fixed_product_type, allow_group_buy=is_enterprise)
         if form.is_valid():
             product = form.save(commit=False)
             product.business = business
             product.save()
+            _ensure_group_buy_circle(product, business)
             messages.success(request, f'Item "{product.name}" added successfully!')
             return redirect('operations:product_list')
     else:
-        form = ProductForm()
+        form = ProductForm(fixed_product_type=fixed_product_type, allow_group_buy=is_enterprise)
 
-    return render(request, 'operations/product_form.html', {'form': form, 'title': 'Add New Item'})
+    return render(request, 'operations/product_form.html', {
+        'form': form,
+        'title': title,
+        'fixed_product_type': fixed_product_type,
+        'fixed_product_type_label': fixed_product_type_label,
+    })
 
 
 @login_required
 @role_required('SmallBusiness', 'EnterpriseBuyer')
 def product_update(request, pk):
     product = get_object_or_404(Product, pk=pk, business__user=request.user)
+    is_enterprise = request.user.role == 'EnterpriseBuyer'
 
     if request.method == 'POST':
-        form = ProductForm(request.POST, instance=product)
+        form = ProductForm(request.POST, instance=product, allow_group_buy=is_enterprise)
         if form.is_valid():
-            form.save()
+            product = form.save()
+            _ensure_group_buy_circle(product, product.business)
             messages.success(request, f'"{product.name}" updated successfully!')
             return redirect('operations:product_list')
     else:
-        form = ProductForm(instance=product)
+        form = ProductForm(instance=product, allow_group_buy=is_enterprise)
 
     return render(request, 'operations/product_form.html', {'form': form, 'title': 'Edit Item'})
 
@@ -116,6 +147,17 @@ def marketplace_list(request):
             'closed_circle': closed_circle_map.get(p.pk),
         })
 
+    is_enterprise = request.user.is_authenticated and request.user.role == 'EnterpriseBuyer'
+
+    member_circle_ids = set()
+    if request.user.is_authenticated:
+        business = Business.objects.filter(user=request.user).first()
+        if business:
+            member_circle_ids = set(
+                BuyingCircleMember.objects.filter(business=business)
+                .values_list('buying_circle_id', flat=True)
+            )
+
     context = {
         'products_with_circles': products_with_circles,
         'categories': categories,
@@ -123,6 +165,8 @@ def marketplace_list(request):
         'current_type': p_type,
         'query': query,
         'group_buy_filter': group_buy,
+        'is_enterprise': is_enterprise,
+        'member_circle_ids': member_circle_ids,
     }
     return render(request, 'operations/marketplace_list.html', context)
 
@@ -154,11 +198,14 @@ def buying_circle_list(request):
         ('Completed', 'Completed'),
     ]
 
+    is_enterprise = request.user.is_authenticated and request.user.role == 'EnterpriseBuyer'
+
     return render(request, 'operations/buying_circle_list.html', {
         'buying_circles': qs,
         'status_filter': status_filter,
         'member_circle_ids': member_circle_ids,
         'status_tabs': status_tabs,
+        'is_enterprise': is_enterprise,
     })
 
 
@@ -179,9 +226,11 @@ def circle_detail(request, pk):
         and not is_member
         and circle.status == 'Open'
         and business != circle.product.business  # supplier can't join their own circle
+        and request.user.role != 'EnterpriseBuyer'  # enterprises don't buy raw materials via circles
     )
 
     join_form = JoinCircleForm() if can_join else None
+    is_enterprise = request.user.role == 'EnterpriseBuyer'
 
     context = {
         'circle': circle,
@@ -190,6 +239,7 @@ def circle_detail(request, pk):
         'user_membership': user_membership,
         'can_join': can_join,
         'join_form': join_form,
+        'is_enterprise': is_enterprise,
     }
     return render(request, 'operations/circle_detail.html', context)
 
