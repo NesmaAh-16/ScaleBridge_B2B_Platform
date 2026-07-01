@@ -143,12 +143,28 @@
                         </span>
                     </div>
 
-                    {% if product.is_group_buy %}
+                    {% if product.is_group_buy and product.product_type == 'MATERIAL' and is_enterprise %}
+                        <span class="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-wide whitespace-nowrap cursor-not-allowed"
+                              title="Enterprise businesses cannot join raw material buying circles.">
+                            <i data-lucide="user-x" class="w-3.5 h-3.5"></i> Join Circle
+                        </span>
+                    {% elif product.is_group_buy %}
                         {% if circle %}
-                        <a href="{% url 'operations:circle_detail' circle.pk %}"
-                           class="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-sb-teal text-white rounded-xl text-[10px] font-black uppercase tracking-wide hover:opacity-90 transition-all whitespace-nowrap">
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Join Circle
-                        </a>
+                            {% if circle.pk in member_circle_ids %}
+                            <form method="POST" action="{% url 'operations:circle_leave' circle.pk %}"
+                                  onsubmit="return confirm('Leave this buying circle?')" class="shrink-0">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="flex items-center gap-1.5 px-3 py-2 border border-red-200 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-wide hover:bg-red-500 hover:text-white transition-all whitespace-nowrap">
+                                    <i data-lucide="user-minus" class="w-3.5 h-3.5"></i> Leave Circle
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'operations:circle_detail' circle.pk %}"
+                               class="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-sb-teal text-white rounded-xl text-[10px] font-black uppercase tracking-wide hover:opacity-90 transition-all whitespace-nowrap">
+                                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Join Circle
+                            </a>
+                            {% endif %}
                         {% elif closed_circle %}
                         <span class="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-wide whitespace-nowrap cursor-not-allowed"
                               title="This product's buying circle has already reached its target.">
