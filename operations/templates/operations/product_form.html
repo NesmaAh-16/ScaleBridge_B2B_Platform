@@ -29,16 +29,20 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="col-span-3 sm:col-span-1">
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="col-span-4 sm:col-span-1">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Inventory Type</label>
                         {{ form.product_type }}
                     </div>
-                    <div class="col-span-3 sm:col-span-1">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Unit Price ($)</label>
+                    <div class="col-span-4 sm:col-span-1">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Currency</label>
+                        {{ form.currency }}
+                    </div>
+                    <div class="col-span-4 sm:col-span-1">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Unit Price</label>
                         {{ form.price }}
                     </div>
-                    <div class="col-span-3 sm:col-span-1">
+                    <div class="col-span-4 sm:col-span-1">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Measurement Unit</label>
                         {{ form.unit }}
                     </div>
@@ -49,15 +53,39 @@
                     {{ form.description }}
                 </div>
 
-                <div class="flex items-center p-4 bg-sb-neutral rounded-2xl border border-gray-100">
+                <!-- Group buy toggle -->
+                <div class="flex items-center p-4 bg-sb-neutral rounded-2xl border border-gray-100 cursor-pointer"
+                     onclick="document.getElementById('id_is_group_buy').click()">
                     <div class="flex items-center h-5">
                         {{ form.is_group_buy }}
                     </div>
                     <div class="ml-4">
-                        <label class="font-bold text-sb-navy text-sm">Enable Demand Aggregation</label>
+                        <label class="font-bold text-sb-navy text-sm cursor-pointer">Enable Demand Aggregation</label>
                         <p class="text-xs text-gray-400">Allows this item to be part of collective "Buying Circles."</p>
                     </div>
                 </div>
+
+                <!-- Min order quantity — visible only when group buy is checked -->
+                <div id="min_order_section" class="{% if not form.is_group_buy.value %}hidden{% endif %}">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">
+                        Minimum Order Quantity <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.min_order_quantity }}
+                    {% if form.min_order_quantity.errors %}
+                        <p class="mt-1 text-xs text-red-500 font-bold">{{ form.min_order_quantity.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-400">The minimum quantity buyers must collectively reach to trigger an order.</p>
+                </div>
+
+                <script>
+                    (function () {
+                        var chk = document.getElementById('id_is_group_buy');
+                        var sec = document.getElementById('min_order_section');
+                        function toggle() { sec.classList.toggle('hidden', !chk.checked); }
+                        chk.addEventListener('change', toggle);
+                        toggle();
+                    })();
+                </script>
 
                 <div class="pt-8 flex items-center gap-6">
                     <button type="submit" class="bg-sb-navy text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:shadow-glow transition-all">

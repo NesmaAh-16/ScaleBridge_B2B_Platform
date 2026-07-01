@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block page_title %}Start a Buying Circle{% endblock %}
+
+{% block content %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="max-w-2xl mx-auto space-y-8">
+
+    <!-- Back link -->
+    <a href="{% url 'operations:marketplace' %}" class="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Marketplace
+    </a>
+
+    <!-- Product summary card -->
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 flex items-center gap-6">
+        <div class="w-16 h-16 rounded-2xl bg-sb-green/10 flex items-center justify-center shrink-0">
+            <i data-lucide="users" class="w-8 h-8 text-sb-green"></i>
+        </div>
+        <div>
+            <p class="text-[10px] font-black text-sb-green uppercase tracking-widest">Group Buy</p>
+            <h2 class="text-2xl font-black text-sb-navy mt-1">{{ product.name }}</h2>
+            <p class="text-sm text-slate-500 mt-1">
+                Supplier: <span class="font-bold text-sb-navy">{{ product.business.business_name }}</span>
+                &nbsp;·&nbsp;
+                Min. order: <span class="font-bold text-sb-navy">{{ product.min_order_quantity|floatformat:0 }} {{ product.unit }}</span>
+                &nbsp;·&nbsp;
+                <span class="font-bold text-sb-navy">{{ product.currency }} {{ product.price }}</span> / {{ product.unit }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-10 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-8 opacity-5">
+            <i data-lucide="users-round" class="w-32 h-32 text-sb-navy"></i>
+        </div>
+
+        <div class="relative z-10">
+            <div class="mb-8">
+                <h3 class="text-2xl font-black text-sb-navy">Start a New Circle</h3>
+                <p class="text-sm text-slate-400 font-medium mt-1">
+                    You'll be the first member. Others can join until the
+                    <span class="text-sb-navy font-bold">{{ product.min_order_quantity|floatformat:0 }} {{ product.unit }}</span>
+                    target is reached and an order is placed automatically.
+                </p>
+            </div>
+
+            <form id="circle-form" method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">
+                        Your Requested Quantity ({{ product.unit }})
+                    </label>
+                    {{ form.requested_quantity }}
+                    {% if form.requested_quantity.errors %}
+                        <p class="mt-1 text-xs text-red-500 font-bold">{{ form.requested_quantity.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Info banner -->
+                <div class="flex items-start gap-3 p-4 bg-sb-green/5 rounded-2xl border border-sb-green/20">
+                    <i data-lucide="info" class="w-4 h-4 text-sb-green shrink-0 mt-0.5"></i>
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                        Once the total quantity across all members reaches
+                        <strong class="text-sb-navy">{{ product.min_order_quantity|floatformat:0 }} {{ product.unit }}</strong>,
+                        the circle closes automatically and a purchase order is sent to the supplier.
+                    </p>
+                </div>
+
+                <div class="pt-4 flex items-center gap-6">
+                    <button type="submit" class="bg-sb-navy text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:shadow-glow transition-all">
+                        Start Circle
+                    </button>
+                    <a href="{% url 'operations:marketplace' %}" class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var minQty   = {{ product.min_order_quantity }};
+    var unit     = "{{ product.unit }}";
+    var form     = document.getElementById('circle-form');
+    var input    = document.getElementById('id_requested_quantity');
+
+    form.addEventListener('submit', function (e) {
+        var val = parseFloat(input.value);
+        if (!isNaN(val) && val > minQty) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Quantity Exceeds Target',
+                html:
+                    'You entered <strong>' + val.toLocaleString() + ' ' + unit + '</strong>, ' +
+                    'which is more than the circle target of ' +
+                    '<strong>' + minQty.toLocaleString() + ' ' + unit + '</strong>.<br><br>' +
+                    'The circle will close <em>immediately</em> and a purchase order will be placed right away.',
+                confirmButtonText: 'Yes, Start & Close Circle',
+                confirmButtonColor: '#0a3658',
+                cancelButtonText: 'Let me adjust',
+                showCancelButton: true,
+                cancelButtonColor: '#6b7280',
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}
