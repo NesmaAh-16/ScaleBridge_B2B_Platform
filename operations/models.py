@@ -18,16 +18,44 @@ class Product(models.Model):
         ('PRODUCT', 'Finished Product'),
         ('MATERIAL', 'Raw Material'),
     ]
-    
+
+    CURRENCY_CHOICES = [
+        ('USD', 'USD'),
+        ('EUR', 'EUR'),
+        ('GBP', 'GBP'),
+        ('JOD', 'JOD'),
+        ('SAR', 'SAR'),
+        ('AED', 'AED'),
+        ('EGP', 'EGP'),
+        ('TRY', 'TRY'),
+    ]
+
+    UNIT_CHOICES = [
+        ('kg',  'kg'),
+        ('g',   'g'),
+        ('ton', 'ton'),
+        ('lb',  'lb'),
+        ('L',   'L'),
+        ('m',   'm'),
+        ('m²',  'm²'),
+        ('m³',  'm³'),
+        ('pcs', 'pcs'),
+        ('box', 'box'),
+        ('pallet', 'pallet'),
+        ('unit', 'unit'),
+    ]
+
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    name = models.CharField(max_length=255) # Increased to 255 for B2B details
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    unit = models.CharField(max_length=45, help_text="e.g. kg, ton, unit")
-    price = models.DecimalField(max_digits=15, decimal_places=2) # 15 digits is great for high-value B2B
-    
+    unit = models.CharField(max_length=45, choices=UNIT_CHOICES)
+    price = models.DecimalField(max_digits=15, decimal_places=2)
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
+
     product_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_group_buy = models.BooleanField(default=False)
+    min_order_quantity = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,35 +75,24 @@ class BuyingCircle(models.Model):
     target_quantity = models.DecimalField(max_digits=15, decimal_places=2)
     current_quantity = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='Open')
+    deadline = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    @property
-    def progress_percentage(self):
-        """Calculates 0-100 percentage for the progress bar"""
-        if self.target_quantity > 0:
-            percent = (self.current_quantity / self.target_quantity) * 100
-            # Cap at 100 for the visual bar width, but keep as float for accuracy
-            return min(round(float(percent), 1), 100.0)
-        return 0
-
-    @property
-    def progress_label(self):
-        """Returns the numerical ratio for the UI label"""
-        return f"{self.current_quantity:,.0f} / {self.target_quantity:,.0f}"
-
-    @property
-    def is_reached(self):
-        """Returns True if the goal is met or exceeded"""
-        return self.current_quantity >= self.target_quantity
 
     @property
     def progress_percentage(self):
         if not self.target_quantity or self.target_quantity <= 0:
             return 0
-
         percentage = (self.current_quantity / self.target_quantity) * 100
         return min(round(percentage), 100)
+
+    @property
+    def progress_label(self):
+        return f"{self.current_quantity:,.0f} / {self.target_quantity:,.0f}"
+
+    @property
+    def is_reached(self):
+        return self.current_quantity >= self.target_quantity
     
 class BuyingCircleMember(models.Model):
     buying_circle = models.ForeignKey(BuyingCircle, on_delete=models.CASCADE, related_name='members')

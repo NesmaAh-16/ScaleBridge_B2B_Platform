@@ -190,7 +190,7 @@
   {% endif %}
 
   <!-- BUSINESS ONLY: Personal Inventory -->
-  {% if "SMALL" in user.role.upper %}
+  {% if "ADMIN" not in user.role.upper %}
     <a href="{% url 'operations:product_list' %}" class="{% if 'catalog' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
       <i data-lucide="layout-grid" class="w-5 h-5 text-sb-green"></i>
       <span x-show="!sidebarCollapsed" class="font-bold text-sm">My Catalog</span>
@@ -268,8 +268,7 @@
 
     <div x-show="!sidebarCollapsed" class="overflow-hidden flex-1">
     <p class="text-xs font-black text-white truncate">
-        <!-- Using .upper to be safe -->
-        {% if "ADMIN" in user.role.upper %}Scale (Admin){% else %}Artisan Hub{% endif %}
+        {{ user.email }}
     </p>
     <p class="text-[9px] text-sb-green/80 font-black uppercase tracking-widest">
         {{ user.get_role_display }}
