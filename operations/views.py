@@ -5,6 +5,7 @@ from accounts.decorators import role_required
 from accounts.models import Business
 from .models import Product, Category, BuyingCircle, BuyingCircleMember, Order
 from .forms import ProductForm, BuyingCircleForm, JoinCircleForm
+from django.db import transaction
 
 
 # ---------------------------------------------------------------------------
@@ -298,31 +299,41 @@ def circle_join(request, pk):
     if request.method != 'POST':
         return redirect('operations:circle_detail', pk=pk)
 
-    circle = get_object_or_404(BuyingCircle, pk=pk, status='Open')
-    business = Business.objects.filter(user=request.user).first()
-
-    if not business:
-        messages.error(request, 'Complete your business profile first.')
-        return redirect('accounts:business_profile')
-
-    if circle.members.filter(business=business).exists():
-        messages.warning(request, 'You are already a member of this circle.')
+    form = JoinCircleForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, 'Invalid quantity. Please try again.')
         return redirect('operations:circle_detail', pk=pk)
 
-    form = JoinCircleForm(request.POST)
-    if form.is_valid():
-        requested_qty = form.cleaned_data['requested_quantity']
-        BuyingCircleMember.objects.create(
-            buying_circle=circle,
-            business=business,
-            requested_quantity=requested_qty,
-        )
-        circle.current_quantity += requested_qty
-        circle.save()
-        _maybe_close_circle(circle)
+    requested_qty = form.cleaned_data['requested_quantity']
+
+    try:
+        with transaction.atomic():
+            circle = get_object_or_404(BuyingCircle.objects.select_for_update(), pk=pk, status='Open')
+            business = Business.objects.filter(user=request.user).first()
+
+            if not business:
+                messages.error(request, 'Complete your business profile first.')
+                return redirect('accounts:business_profile')
+
+            if circle.members.filter(business=business).exists():
+                messages.warning(request, 'You are already a member of this circle.')
+                return redirect('operations:circle_detail', pk=pk)
+
+            BuyingCircleMember.objects.create(
+                buying_circle=circle,
+                business=business,
+                requested_quantity=requested_qty,
+            )
+
+            circle.current_quantity += requested_qty
+            circle.save()
+
+            _maybe_close_circle(circle)
+
         messages.success(request, f'You joined the buying circle for {circle.product.name}!')
-    else:
-        messages.error(request, 'Invalid quantity. Please try again.')
+
+    except BuyingCircle.DoesNotExist:
+        messages.error(request, 'This buying circle is no longer available.')
 
     return redirect('operations:circle_detail', pk=pk)
 
