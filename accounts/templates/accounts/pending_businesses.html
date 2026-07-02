@@ -1,0 +1,126 @@
+{% extends "base.html" %} {% block page_title %}Business Vetting{% endblock %}
+{% block content %}
+<div class="space-y-8">
+  <div>
+    <p class="text-[10px] font-black text-sb-green uppercase tracking-[0.25em]">
+      Admin Governance
+    </p>
+    <h1 class="mt-2 text-3xl md:text-4xl font-black text-sb-navy">
+      Pending Business Verification
+    </h1>
+    <p class="mt-2 text-slate-500 text-sm font-medium">
+      Review business participants before allowing them into the verified
+      marketplace ecosystem.
+    </p>
+  </div>
+
+  <div
+    class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div
+      class="p-6 border-b border-slate-100 flex items-center justify-between"
+    >
+      <h2 class="text-lg font-black text-sb-navy">Pending Businesses</h2>
+      <span
+        class="text-xs font-black text-sb-green bg-sb-green/10 px-3 py-2 rounded-full"
+      >
+        {{ pending_businesses|length }} pending
+      </span>
+    </div>
+
+    {% if pending_businesses %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead
+          class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-[0.2em]"
+        >
+          <tr>
+            <th class="px-6 py-4">Business</th>
+            <th class="px-6 py-4">Owner</th>
+            <th class="px-6 py-4">Location</th>
+            <th class="px-6 py-4">Category</th>
+            <th class="px-6 py-4">Status</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-100">
+          {% for business in pending_businesses %}
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-6 py-5">
+              <p class="font-black text-sb-navy">
+                {{ business.business_name }}
+              </p>
+              <p class="text-xs text-slate-400 mt-1">
+                {{ business.description|default:"No description provided" }}
+              </p>
+            </td>
+
+            <td class="px-6 py-5">
+              <p class="font-bold text-sb-navy">{{ business.user.email }}</p>
+              <p class="text-xs text-slate-400">{{ business.user.role }}</p>
+            </td>
+
+            <td class="px-6 py-5 text-sm font-bold text-slate-600">
+              {{ business.location }}
+            </td>
+
+            <td class="px-6 py-5 text-sm font-bold text-slate-600">
+              {{ business.business_type }}
+            </td>
+
+            <td class="px-6 py-5">
+              <span
+                class="text-xs font-black bg-yellow-100 text-yellow-700 px-3 py-2 rounded-full"
+              >
+                {{ business.verification_status|upper }}
+              </span>
+            </td>
+
+            <td class="px-6 py-5">
+              <div class="flex items-center justify-end gap-2">
+                <div class="flex items-center justify-end gap-2">
+                  <form
+                    method="POST"
+                    action="{% url 'accounts:update_business_verification' business.id 'approve' %}"
+                  >
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-xl bg-sb-green text-sb-navy text-xs font-black hover:opacity-90 transition"
+                    >
+                      Approve
+                    </button>
+                  </form>
+
+                  <form
+                    method="POST"
+                    action="{% url 'accounts:update_business_verification' business.id 'reject' %}"
+                  >
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-black hover:bg-red-100 transition"
+                    >
+                      Reject
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-10 text-center">
+      <h3 class="text-xl font-black text-sb-navy">No pending businesses</h3>
+      <p class="mt-2 text-sm text-slate-500">
+        All submitted business profiles have already been reviewed.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

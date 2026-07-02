@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -71,6 +71,42 @@ def admin_dashboard_view(request):
         'pending_businesses': pending_businesses,
         'active_businesses': active_businesses,
     })
+
+@login_required
+@role_required('Admin')
+def pending_businesses_view(request):
+    pending_businesses = Business.objects.filter(
+        verification_status='pending'
+    ).select_related('user')
+
+    return render(
+        request,
+        'accounts/pending_businesses.html',
+        {
+            'pending_businesses': pending_businesses
+        }
+    )
+
+@login_required
+@role_required('Admin')
+def update_business_verification(request, business_id, action):
+    if request.method != 'POST':
+        return redirect('accounts:pending_businesses')
+
+    business = get_object_or_404(Business, id=business_id)
+
+    if action == 'approve':
+        business.verification_status = 'approved'
+        messages.success(request, f'{business.business_name} has been approved.')
+    elif action == 'reject':
+        business.verification_status = 'rejected'
+        messages.warning(request, f'{business.business_name} has been rejected.')
+    else:
+        messages.error(request, 'Invalid verification action.')
+        return redirect('accounts:pending_businesses')
+
+    business.save()
+    return redirect('accounts:pending_businesses')
 
 
 @login_required
