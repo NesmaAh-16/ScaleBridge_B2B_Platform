@@ -92,7 +92,6 @@
             </div>
           </a>
         </nav>
-
         <div class="p-4" x-data="{ userMenuOpen: false }">
           <div @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-all">
             <div class="w-10 h-10 rounded-xl bg-sb-green flex items-center justify-center text-sb-navy font-black text-sm">
@@ -101,6 +100,101 @@
             <div x-show="!sidebarCollapsed" class="overflow-hidden flex-1">
                 <p class="text-xs font-bold text-white truncate">{{ user.email }}</p>
                 <p class="text-[10px] text-white/40 font-bold uppercase tracking-widest">{{ user.get_role_display }}</p>
+=======
+<!-- Navigation -->
+<nav class="flex-1 px-4 space-y-1.5 overflow-y-auto no-scrollbar">
+  
+  <!-- ADMIN ONLY: Management Tools -->
+  {% if "ADMIN" in user.role.upper %}
+    <a href="/accounts/dashboard/admin/" class="nav-item-active flex items-center gap-4 px-5 py-4 rounded-2xl text-white transition-all group">
+    <i data-lucide="shield-check" class="w-5 h-5 text-sb-green"></i>
+    <span x-show="!sidebarCollapsed" class="font-bold text-sm">
+        Control Center
+    </span>
+</a>
+
+<a href="{% url 'accounts:pending_businesses' %}"
+   class="{% if 'businesses' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+    <i data-lucide="badge-check" class="w-5 h-5"></i>
+    <span x-show="!sidebarCollapsed" class="font-semibold text-sm">
+        Business Vetting
+    </span>
+</a>
+
+<a href="/admin/" target="_blank"
+   class="flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all group">
+    <i data-lucide="database" class="w-5 h-5"></i>
+    <span x-show="!sidebarCollapsed" class="font-semibold text-sm">
+        Django Admin
+    </span>
+</a>
+  {% endif %}
+
+  <!-- BUSINESS ONLY: Personal Inventory -->
+  {% if "ADMIN" not in user.role.upper %}
+    <a href="{% url 'operations:product_list' %}" class="{% if 'catalog' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+      <i data-lucide="layout-grid" class="w-5 h-5 text-sb-green"></i>
+      <span x-show="!sidebarCollapsed" class="font-bold text-sm">My Catalog</span>
+    </a>
+  {% endif %}
+
+  <!-- MARKETPLACE & CIRCLES: For everyone EXCEPT Admin -->
+  {% if "ADMIN" not in user.role.upper %}
+    <a href="{% url 'operations:marketplace' %}" class="{% if 'marketplace' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+      <i data-lucide="shopping-bag" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+      <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Marketplace</span>
+    </a>
+
+  <a href="{% url 'operations:buying_circle_list' %}" 
+   class="{% if 'buying_circle' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+    <i data-lucide="refresh-cw" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-700"></i>
+    <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Buying Circles</span>
+    <span x-show="!sidebarCollapsed" class="ml-auto bg-sb-green text-sb-navy text-[10px] font-black px-2.5 py-1 rounded-lg border border-white/10">
+        {{ buying_circles.count|default:"0" }}
+    </span>
+</a>
+  {% endif %}
+</nav>
+        <!-- ACCOUNT MANAGEMENT SECTION (Interactive) -->
+        <div class="p-6 mt-auto relative">
+          <!-- Upward Dropdown Menu -->
+          <div
+            x-show="userMenuOpen"
+            @click.away="userMenuOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+            class="absolute bottom-full left-6 right-6 mb-4 bg-sb-navy/90 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] shadow-2xl p-3 z-50"
+            x-cloak
+          >
+            <div class="space-y-1">
+              {% if not user.is_superuser and user.role != 'Admin' %}
+              <a
+                href="{% url 'accounts:business_profile' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
+              >
+                <i data-lucide="briefcase" class="w-4 h-4"></i> Business Profile
+              </a>
+              {% endif %}
+              <div class="my-2 border-t border-white/5"></div>
+
+              <!-- LOGOUT FORM (Standard Django Approach) -->
+              <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-xs font-bold text-red-400 transition-all group"
+                >
+                  <i
+                    data-lucide="log-out"
+                    class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                  ></i>
+                  Confirm Logout
+                </button>
+              </form>
             </div>
           </div>
           <div x-show="userMenuOpen" @click.away="userMenuOpen = false" x-cloak class="mt-2 space-y-1">
@@ -132,11 +226,42 @@
             </div>
         </header>
 
+<<<<<<< HEAD
         <main class="flex-1 overflow-y-auto p-10">
             <div class="max-w-[1400px] mx-auto">
                 {% block content %}{% endblock %}
             </div>
         </main>
+=======
+        <main class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+    <div class="max-w-[1500px] mx-auto">
+
+        {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="
+                    rounded-2xl px-5 py-4 font-semibold shadow-sm border
+                    {% if message.tags == 'success' %}
+                        bg-green-50 border-green-200 text-green-700
+                    {% elif message.tags == 'warning' %}
+                        bg-yellow-50 border-yellow-200 text-yellow-700
+                    {% elif message.tags == 'error' %}
+                        bg-red-50 border-red-200 text-red-700
+                    {% else %}
+                        bg-blue-50 border-blue-200 text-blue-700
+                    {% endif %}
+                ">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </div>
+</main>
+>>>>>>> a6931146822c199d74e997194b7eb064e119de52
       </div>
     </div>
     <script>lucide.createIcons();</script>
