@@ -19,4 +19,6 @@ urlpatterns = [
     path('circles/start/<int:product_pk>/', views.circle_create, name='circle_create'),
     path('circles/<int:pk>/join/', views.circle_join, name='circle_join'),
     path('circles/<int:pk>/leave/', views.circle_leave, name='circle_leave'),
+    
+    
 ]
