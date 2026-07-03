@@ -41,16 +41,18 @@
                         </div>
                     </td>
                     <td class="px-8 py-6 text-center">
-                        {% if item.product_type == 'MATERIAL' %}
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20">
-                           <span class="w-1.5 h-1.5 rounded-full bg-sb-green"></span> Raw Material
-                        </span>
-                        {% else %}
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-teal/10 text-sb-teal text-[10px] font-black uppercase tracking-wider border border-sb-teal/20">
-                           <span class="w-1.5 h-1.5 rounded-full bg-sb-teal"></span> Finished Good
-                        </span>
-                        {% endif %}
-                    </td>
+    {% if item.product_type == 'MATERIAL' %}
+    <!-- Clean Badge: No Dot -->
+    <span class="inline-flex items-center px-3 py-1 rounded-full bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20">
+        Raw Material
+    </span>
+    {% else %}
+    <!-- Clean Badge: No Dot -->
+    <span class="inline-flex items-center px-3 py-1 rounded-full bg-sb-teal/10 text-sb-teal text-[10px] font-black uppercase tracking-wider border border-sb-teal/20">
+        Finished Good
+    </span>
+    {% endif %}
+</td>
                     <td class="px-8 py-6">
                         <p class="font-black text-sb-navy text-lg">{{ item.currency }} {{ item.price }}</p>
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per {{ item.unit }}</p>
@@ -73,7 +75,7 @@
                             <i data-lucide="database-zap" class="w-12 h-12 text-gray-200 mx-auto mb-4"></i>
                             <p class="text-sb-navy font-bold">No assets found</p>
                             <p class="text-sm text-gray-400 mt-1 mb-6">Your catalog is empty. Start by adding your first material or product.</p>
-                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">{{ add_button_label }} +</a>
+                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">Add+</a>
                         </div>
                     </td>
                 </tr>
