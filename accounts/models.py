@@ -35,3 +35,14 @@ class Business(models.Model):
 
     def __str__(self):
         return self.business_name
+    
+    @property
+    def average_rating(self):
+        """
+        Doctor's Pro-Tip: Calculate average rating in real-time.
+        """
+        reviews = self.reviews_received.all()
+        if not reviews:
+            return 0
+        total = sum([r.rating for r in reviews])
+        return round(total / reviews.count(), 1)

@@ -1,6 +1,6 @@
 from django import forms
 from .models import Product, BuyingCircle
-
+from .models import Review
 INPUT  = 'w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl font-bold text-sb-navy focus:ring-4 focus:ring-sb-navy/5 focus:bg-white focus:border-sb-navy transition-all outline-none'
 SELECT = INPUT
 
@@ -80,3 +80,16 @@ class JoinCircleForm(forms.Form):
         }),
         label='Your Requested Quantity',
     )
+
+# operations/forms.py
+
+from .models import Review
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.Select(choices=[(i, f"{i} Stars") for i in range(1, 6)], attrs={'class': 'form-select p-3 rounded-xl border-slate-200'}),
+            'comment': forms.Textarea(attrs={'class': 'form-control p-4 rounded-2xl border-slate-200', 'rows': 4, 'placeholder': 'Describe the fulfillment quality...'}),
+        }

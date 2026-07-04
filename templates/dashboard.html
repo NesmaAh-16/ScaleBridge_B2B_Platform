@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
+<<<<<<< Updated upstream
 <div class="space-y-10">
 
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-100 pb-10">
@@ -91,5 +93,149 @@
   </div>
   {% endif %}
 
+=======
+<!-- VANGUARD SYSTEM ALERTS (Floating Toast Logic) -->
+{% if messages %}
+<div class="fixed top-24 right-10 z-[100] space-y-4 w-96 animate-in slide-in-from-right duration-500">
+    {% for message in messages %}
+    <div class="p-5 rounded-[1.5rem] shadow-glow backdrop-blur-xl border-l-4 flex items-start gap-4 
+        {% if message.tags == 'success' %} bg-sb-navy/90 border-sb-green text-white {% else %} bg-red-950/90 border-red-500 text-white {% endif %} glass-stroke">
+        <div class="mt-1">
+            {% if message.tags == 'success' %}
+            <i data-lucide="check-circle" class="w-5 h-5 text-sb-green"></i>
+            {% else %}
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+            {% endif %}
+        </div>
+        <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] {% if message.tags == 'success' %} text-sb-green {% else %} text-red-400 {% endif %} mb-1">
+                System Notification
+            </p>
+            <p class="text-xs font-bold leading-relaxed italic">{{ message }}</p>
+        </div>
+    </div>
+    {% endfor %}
+>>>>>>> Stashed changes
+</div>
+{% endif %}
+
+<div class="space-y-12">
+    <!-- THE "ELITE LINE" HERO -->
+    <div class="relative rounded-[3.5rem] overflow-hidden shadow-soft-xl group">
+        <div class="absolute inset-0 sidebar-vanguard opacity-95"></div>
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+        <div class="relative z-10 p-16 md:p-20 flex flex-col xl:flex-row items-center justify-between gap-12">
+            <div class="max-w-2xl text-center xl:text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sb-green/10 border border-sb-green/20 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-sb-green"></span>
+                    <p class="text-[10px] font-black text-sb-green uppercase tracking-widest">Efficiency Benchmark</p>
+                </div>
+                <h2 class="text-5xl md:text-6xl font-black text-white leading-[1.1] tracking-tight">
+                    Welcome back, <br />
+                    <span class="text-sb-green italic">{{ user.first_name|default:user.email }}</span>.
+                </h2>
+                <div class="h-1 w-24 bg-sb-green my-8 rounded-full shadow-glow"></div>
+                <p class="text-white/40 text-xl font-medium leading-relaxed max-w-lg">
+                    Network throughput is <span class="text-white font-bold decoration-sb-green underline underline-offset-8">stable</span>. Dashboard synced with Main Network.
+                </p>
+            </div>
+
+            <!-- Circular Performance Hub -->
+            <div class="hidden xl:block">
+                <div class="w-64 h-64 rounded-full border-[15px] border-white/5 flex items-center justify-center relative shadow-2xl">
+                    <div class="text-center">
+                        <p class="text-sb-green text-6xl font-black tracking-tighter italic">{{ unread_count }}</p>
+                        <p class="text-white/30 text-[11px] font-black uppercase tracking-[0.4em] mt-2">Live Alerts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS CONSOLE -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- LIVE CIRCLES -->
+        <div class="bg-white rounded-[2.5rem] p-8 glass-stroke hover:shadow-2xl transition-all">
+            <div class="w-12 h-12 bg-sb-navy rounded-2xl flex items-center justify-center mb-6">
+                <i data-lucide="refresh-cw" class="w-6 h-6 text-sb-green"></i>
+            </div>
+            <p class="text-slate-400 text-[11px] font-black uppercase tracking-widest mb-1">Active Circles</p>
+            <h3 class="text-5xl font-black text-sb-navy tracking-tighter">{{ buying_circles.count }}</h3>
+        </div>
+
+        <!-- ACTIVE LEDGER -->
+        <div class="bg-white rounded-[2.5rem] p-8 glass-stroke hover:shadow-2xl transition-all">
+            <div class="w-12 h-12 bg-sb-teal rounded-2xl flex items-center justify-center mb-6">
+                <i data-lucide="trending-down" class="w-6 h-6 text-white"></i>
+            </div>
+            <p class="text-slate-400 text-[11px] font-black uppercase tracking-widest mb-1">Ledger Items</p>
+            <h3 class="text-5xl font-black text-sb-navy tracking-tighter">{{ orders.count }}</h3>
+        </div>
+
+        <!-- TRUST SCORE -->
+        <div class="sidebar-vanguard rounded-[2.5rem] p-8 shadow-2xl border border-white/5">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-sb-green"></i>
+                </div>
+                <div class="bg-sb-green text-sb-navy text-[10px] font-black px-2 py-1 rounded shadow-lg italic">A+ RATING</div>
+            </div>
+            <p class="text-white/30 text-[11px] font-black uppercase tracking-widest mb-1">Trust Score</p>
+            <h3 class="text-6xl font-black text-white tracking-tighter">4.8</h3>
+        </div>
+
+        <!-- UNREAD -->
+        <div class="bg-white rounded-[2.5rem] p-8 glass-stroke hover:shadow-2xl transition-all">
+            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">
+                <i data-lucide="bell" class="w-6 h-6 text-orange-500"></i>
+            </div>
+            <p class="text-slate-400 text-[11px] font-black uppercase tracking-widest mb-1">Unread Alerts</p>
+            <h3 class="text-5xl font-black text-sb-navy tracking-tighter">{{ unread_count }}</h3>
+        </div>
+    </div>
+
+    <!-- MAIN CONSOLE GRID -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-12">
+
+        <!-- RIGHT: VANGUARD ALERTS -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between px-2">
+                <h3 class="text-2xl font-black text-sb-navy italic tracking-tight">Vanguard Alerts</h3>
+                <i data-lucide="radio" class="w-5 h-5 text-sb-green animate-pulse"></i>
+            </div>
+            
+            <div class="sidebar-vanguard rounded-[3rem] p-8 min-h-[600px] shadow-2xl relative overflow-hidden border border-white/5 flex flex-col">
+                <div class="absolute inset-0 grainy-overlay opacity-20"></div>
+                
+                <div class="relative z-10 space-y-6 flex-1 overflow-y-auto no-scrollbar">
+                    {% for note in notifications %}
+                    <div class="p-6 rounded-[2rem] transition-all duration-300 {% if not note.is_read %} bg-white/10 border border-white/20 shadow-glow {% else %} bg-white/5 border border-white/5 opacity-40 {% endif %}">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-sb-green text-[9px] font-black uppercase tracking-[0.2em] italic">{{ note.title }}</span>
+                            <span class="text-white/20 text-[8px] font-bold">{{ note.created_at|timesince }} ago</span>
+                        </div>
+                        <p class="text-white/80 font-medium text-[11px] leading-relaxed italic">{{ note.message }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="flex flex-col items-center justify-center h-full text-center py-20">
+                        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="wifi-off" class="w-6 h-6 text-white/10"></i>
+                        </div>
+                        <p class="text-white/20 font-black italic uppercase tracking-widest text-xs">Network Silence</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- PERSISTENT NODE STATUS -->
+                <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
+                    <div class="flex items-center justify-between">
+                        <p class="text-white/40 text-[9px] font-black uppercase tracking-widest italic">Node Reliability</p>
+                        <p class="text-sb-green text-[9px] font-black italic">99.9% SECURE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
