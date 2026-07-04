@@ -8,6 +8,8 @@ from .decorators import role_required
 from django.utils.html import escape  
 from django.db import DatabaseError
 from operations.models import BuyingCircle
+from django.db.models import Q
+from operations.models import Order, Notification
 
 
 def register_view(request):
@@ -167,4 +169,36 @@ def business_profile(request):
 
     return render(request, 'accounts/business_profile.html', {
         'business': business
+    })
+
+@login_required
+@role_required('SmallBusiness', 'EnterpriseBuyer')
+def business_dashboard_view(request):
+    # Identify the business
+    business = Business.objects.filter(user=request.user).first()
+
+    # 1. Get filtered circles
+    buying_circles = BuyingCircle.objects.filter(
+        Q(members__business=business) | Q(created_by=business)
+    ).select_related('product','created_by').distinct()
+
+    # 2. Get the 4 orders we found in the shell
+    orders = Order.objects.filter(
+        Q(buyer_business=business) | Q(supplier_business=business)
+    ).select_related('buyer_business', 'supplier_business', 'buying_circle__product').order_by('-created_at')
+
+    # --- THE MEDICAL MONITOR (Check your terminal after refreshing!) ---
+    print(f"--- DASHBOARD DEBUG: Found {orders.count()} orders for {request.user.email} ---")
+
+    # 3. Get Notifications
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = notifications.filter(is_read=False).count()
+
+    # 4. SEND TO HTML (Check that 'orders' is spelled correctly!)
+    return render(request, 'dashboard.html', {
+        'business': business,
+        'buying_circles': buying_circles,
+        'orders': orders,           # <--- This must match the {% for order in orders %}
+        'notifications': notifications,
+        'unread_count': unread_count,
     })

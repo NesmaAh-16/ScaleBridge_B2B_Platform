@@ -25,6 +25,11 @@ class BuyingCircleAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'buyer_business', 'supplier_business', 'total_price', 'status')
     list_filter = ('status',)
+    def display_type(self, obj):
+        if obj.buying_circle:
+            return "GROUP BUY (Consolidated)"
+        return obj.buyer_business.business_name
+    display_type.short_description = 'Buyer/Type'
 
 # 5. Register other models simply
 admin.site.register(BuyingCircleMember)
