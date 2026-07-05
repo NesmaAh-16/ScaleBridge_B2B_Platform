@@ -1,90 +1,106 @@
 {% extends "base.html" %}
+{% block page_title %}Operations Deck{% endblock %}
 
 {% block content %}
-<div class="space-y-10">
+<div class="space-y-8 lg:space-y-10">
 
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-100 pb-10">
-    <div class="max-w-2xl">
-        <div class="text-[10px] font-bold text-sb-teal uppercase tracking-[0.4em] mb-3">Operational Intelligence</div>
-        <h1 class="text-5xl font-extrabold text-sb-navy tracking-tight leading-none">
-            ScaleBridge <span class="text-sb-green italic">Console.</span>
+  <div class="relative overflow-hidden rounded-[2rem] lg:rounded-[2.75rem] bg-sb-navy shadow-soft-xl">
+    <div class="absolute inset-0 opacity-[0.05]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <div class="relative z-10 p-6 sm:p-8 lg:p-12 flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+      <div class="max-w-3xl">
+        <div class="text-[10px] font-black text-sb-green uppercase tracking-[0.25em] mb-4">
+          Operational Intelligence
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+          ScaleBridge <span class="text-sb-green italic">Console.</span>
         </h1>
-        <p class="text-slate-500 mt-5 text-lg font-medium leading-relaxed">
-            Welcome, <span class="text-sb-navy font-bold">{{ user.get_role_display }}</span>.
-            {% if "ADMIN" in user.role.upper %}
-                The ecosystem is healthy. You have <span class="text-sb-teal font-bold">0 pending verifications</span>.
-            {% else %}
-                Your procurement yield is optimized.
-            {% endif %}
+
+        <p class="text-white/70 mt-4 text-sm sm:text-base lg:text-lg font-medium leading-relaxed">
+          Welcome, <span class="text-white font-bold">{{ user.get_role_display }}</span>.
+          {% if "ADMIN" in user.role.upper %}
+            The ecosystem is healthy. You have <span class="text-sb-green font-bold">0 pending verifications</span>.
+          {% else %}
+            Your procurement yield is optimized.
+          {% endif %}
         </p>
-    </div>
-    <div class="flex items-center gap-4">
+      </div>
+
+      <div class="w-full sm:w-auto">
         {% if "ADMIN" in user.role.upper %}
-            <a href="/admin/" class="bg-sb-navy text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-sb-teal transition-all">System Core</a>
+          <a href="/admin/" class="w-full sm:w-auto min-h-12 inline-flex items-center justify-center bg-white text-sb-navy px-7 py-4 rounded-2xl font-black shadow-lg hover:bg-sb-green transition-all">
+            System Core
+          </a>
         {% else %}
-            <button class="bg-sb-navy text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-sb-teal transition-all">New Operation</button>
+          <button class="w-full sm:w-auto min-h-12 inline-flex items-center justify-center bg-white text-sb-navy px-7 py-4 rounded-2xl font-black shadow-lg hover:bg-sb-green transition-all">
+            New Operation
+          </button>
         {% endif %}
+      </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <!-- METRIC 1 (CLEAN) -->
-    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm group hover:border-sb-green transition-all">
-        <div class="w-12 h-12 bg-sb-navy rounded-2xl flex items-center justify-center text-white mb-6">
-            <i data-lucide="{% if "ADMIN" in user.role.upper %}users{% else %}refresh-cw{% endif %}" class="w-6 h-6"></i>
-        </div>
-        <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
-            {% if "ADMIN" in user.role.upper %}Businesses{% else %}Active Circles{% endif %}
-        </p>
-        <h3 class="text-4xl font-extrabold text-sb-navy tracking-tighter">{% if "ADMIN" in user.role.upper %}142{% else %}08{% endif %}</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-5 lg:gap-6">
+    <div class="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+      <div class="w-12 h-12 bg-sb-navy rounded-2xl flex items-center justify-center text-white mb-6">
+        <i data-lucide="{% if "ADMIN" in user.role.upper %}users{% else %}refresh-cw{% endif %}" class="w-6 h-6"></i>
+      </div>
+      <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+        {% if "ADMIN" in user.role.upper %}Businesses{% else %}Active Circles{% endif %}
+      </p>
+      <h3 class="text-4xl font-black text-sb-navy tracking-tighter">{% if "ADMIN" in user.role.upper %}142{% else %}08{% endif %}</h3>
     </div>
 
-    <!-- METRIC 2 (CLEAN) -->
-    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm group hover:border-sb-green transition-all">
-        <div class="w-12 h-12 bg-sb-teal/10 rounded-2xl flex items-center justify-center text-sb-teal mb-6">
-            <i data-lucide="{% if "ADMIN" in user.role.upper %}activity{% else %}trending-up{% endif %}" class="w-6 h-6"></i>
-        </div>
-        <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
-            {% if "ADMIN" in user.role.upper %}Volume{% else %}Avg Savings{% endif %}
-        </p>
-        <h3 class="text-4xl font-extrabold text-sb-navy tracking-tighter">{% if "ADMIN" in user.role.upper %}$2.4M{% else %}18.5%{% endif %}</h3>
+    <div class="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+      <div class="w-12 h-12 bg-sb-teal/10 rounded-2xl flex items-center justify-center text-sb-teal mb-6">
+        <i data-lucide="{% if "ADMIN" in user.role.upper %}activity{% else %}trending-up{% endif %}" class="w-6 h-6"></i>
+      </div>
+      <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+        {% if "ADMIN" in user.role.upper %}Volume{% else %}Avg Savings{% endif %}
+      </p>
+      <h3 class="text-4xl font-black text-sb-navy tracking-tighter">{% if "ADMIN" in user.role.upper %}$2.4M{% else %}18.5%{% endif %}</h3>
     </div>
 
-    <!-- METRIC 3 (CLEAN) -->
-    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm group hover:border-sb-green transition-all">
-        <div class="w-12 h-12 bg-sb-green/10 rounded-2xl flex items-center justify-center text-sb-green mb-6">
-            <i data-lucide="shield-check" class="w-6 h-6"></i>
-        </div>
-        <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Network Trust</p>
-        <h3 class="text-4xl font-extrabold text-sb-navy tracking-tighter">A+</h3>
+    <div class="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+      <div class="w-12 h-12 bg-sb-green/10 rounded-2xl flex items-center justify-center text-sb-green mb-6">
+        <i data-lucide="shield-check" class="w-6 h-6"></i>
+      </div>
+      <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Network Trust</p>
+      <h3 class="text-4xl font-black text-sb-navy tracking-tighter">A+</h3>
     </div>
 
-    <!-- METRIC 4 (CLEAN) -->
-    <div class="bg-sb-navy p-8 rounded-[2.5rem] text-white shadow-lg relative overflow-hidden group">
-        <p class="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">Status Report</p>
-        <h3 class="text-2xl font-bold leading-tight mt-4 italic">Optimized.</h3>
+    <div class="bg-sb-navy p-6 sm:p-8 rounded-[2rem] text-white shadow-lg relative overflow-hidden">
+      <p class="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">Status Report</p>
+      <h3 class="text-2xl font-bold leading-tight mt-4 italic">Optimized.</h3>
     </div>
   </div>
 
   {% if "ADMIN" not in user.role.upper %}
-  <div class="pt-6">
-    <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-extrabold text-sb-navy tracking-tight uppercase">Active Aggregations</h2>
-        <div class="h-px flex-1 mx-8 bg-slate-100"></div>
+  <div class="pt-2 sm:pt-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <h2 class="text-xl sm:text-2xl font-black text-sb-navy tracking-tight uppercase">Active Aggregations</h2>
+      <div class="hidden sm:block h-px flex-1 mx-8 bg-slate-100"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5 lg:gap-6">
       {% for circle in buying_circles|slice:":3" %}
-      <div class="bg-white border border-slate-100 rounded-[2rem] p-8 hover:shadow-md transition-all">
-        <div class="flex justify-between items-center mb-10">
-            <!-- STATUS WITHOUT DOT -->
-            <span class="text-[10px] font-black text-sb-teal bg-sb-teal/5 px-2 py-1 rounded-md uppercase tracking-widest">{{ circle.status }}</span>
-            <div class="text-sm font-black text-sb-navy">{{ circle.progress_percentage }}%</div>
+      <div class="bg-white border border-slate-100 rounded-[2rem] p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
+        <div class="flex justify-between items-center mb-8">
+          <span class="text-[10px] font-black text-sb-teal bg-sb-teal/5 px-3 py-1.5 rounded-full uppercase tracking-widest">{{ circle.status }}</span>
+          <div class="text-sm font-black text-sb-navy">{{ circle.progress_percentage }}%</div>
         </div>
-        <h4 class="text-xl font-extrabold text-sb-navy leading-none mb-6">{{ circle.product.name }}</h4>
-        <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-            <div class="h-full bg-sb-navy rounded-full transition-all duration-1000" style="width: {{ circle.progress_percentage }}%"></div>
+
+        <h4 class="text-lg sm:text-xl font-black text-sb-navy leading-tight mb-6">{{ circle.product.name }}</h4>
+
+        <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-sb-navy rounded-full transition-all duration-1000" style="width: {{ circle.progress_percentage }}%"></div>
         </div>
+      </div>
+      {% empty %}
+      <div class="md:col-span-2 2xl:col-span-3 bg-white rounded-[2rem] border border-slate-100 p-10 text-center">
+        <p class="font-black text-sb-navy">No active aggregations yet</p>
+        <p class="text-sm text-slate-400 mt-2">Join or start a buying circle from the marketplace.</p>
       </div>
       {% endfor %}
     </div>

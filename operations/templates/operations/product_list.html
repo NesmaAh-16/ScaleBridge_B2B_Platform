@@ -2,21 +2,153 @@
 {% block page_title %}Product Catalog{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Header Section -->
-    <div class="flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-black text-sb-navy tracking-tighter">{{ catalog_title }}</h1>
-            <p class="text-gray-500 font-medium mt-1">Manage your inventory for marketplace sales and buying circles.</p>
+<div class="space-y-6 lg:space-y-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-5">
+        <div class="max-w-2xl">
+            <p class="text-[10px] font-black text-sb-green uppercase tracking-[0.25em] mb-2">
+                Inventory Management
+            </p>
+
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-sb-navy tracking-tighter leading-tight">
+                {{ catalog_title }}
+            </h1>
+
+            <p class="text-gray-500 font-medium mt-2 text-sm sm:text-base leading-relaxed">
+                Manage your inventory for marketplace sales and buying circles.
+            </p>
         </div>
-        <a href="{% url 'operations:product_create' %}" class="flex items-center gap-2 bg-sb-navy text-white px-6 py-3 rounded-2xl font-bold hover:bg-sb-teal hover:shadow-glow transition-all">
+
+        <a href="{% url 'operations:product_create' %}"
+           class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 bg-sb-navy text-white px-6 py-3 rounded-2xl font-bold hover:bg-sb-teal hover:shadow-glow transition-all">
             <i data-lucide="plus-circle" class="w-5 h-5"></i>
             {{ add_button_label }}
         </a>
     </div>
 
-    <!-- Table Container -->
-    <div class="bg-white rounded-[2rem] glass-stroke overflow-hidden">
+<!-- Mobile / Tablet Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5 xl:hidden">
+    {% for item in products %}
+
+    <div class="bg-white rounded-[2rem] glass-stroke p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+
+        <!-- Header -->
+        <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-sb-neutral flex items-center justify-center text-sb-navy shrink-0 border border-gray-100">
+                <i data-lucide="package" class="w-6 h-6"></i>
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <h3 class="font-black text-sb-navy text-lg leading-tight truncate">
+                    {{ item.name }}
+                </h3>
+
+                <p class="text-xs text-gray-500 font-semibold mt-1 truncate">
+                    {{ item.category.name|default:"General" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Product Type -->
+        <div class="mt-4">
+            {% if item.product_type == 'MATERIAL' %}
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sb-green/10 text-sb-green text-[9px] font-black uppercase tracking-[0.18em] border border-sb-green/20">
+                <span class="w-2 h-2 rounded-full bg-sb-green"></span>
+                Raw Material
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sb-teal/10 text-sb-teal text-[9px] font-black uppercase tracking-[0.18em] border border-sb-teal/20">
+                <span class="w-2 h-2 rounded-full bg-sb-teal"></span>
+                Finished Good
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Price + Unit -->
+        <div class="grid grid-cols-2 gap-3 mt-5">
+            <div class="rounded-2xl bg-sb-neutral border border-gray-100 p-4 min-h-[104px]">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Price
+                </p>
+
+                <div class="mt-3">
+                    <span class="text-xs text-gray-400 font-bold">
+                        {{ item.currency }}
+                    </span>
+
+                    <p class="text-3xl font-black text-sb-navy leading-none mt-0.5">
+                        {{ item.price }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-sb-neutral border border-gray-100 p-4 min-h-[104px]">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Unit
+                </p>
+
+                <div class="mt-3">
+                    <span class="text-xs text-transparent font-bold select-none">
+                        .
+                    </span>
+
+                    <p class="text-3xl font-black text-sb-navy leading-none mt-0.5">
+                        {{ item.unit }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="grid grid-cols-2 gap-3 pt-3">
+            <a
+                href="{% url 'operations:product_update' item.pk %}"
+                class="h-13 min-h-12 flex items-center justify-center gap-2 rounded-2xl bg-sb-navy text-white text-sm font-semibold hover:bg-sb-teal transition-all"
+            >
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                Edit
+            </a>
+
+            <a
+                href="{% url 'operations:product_delete' item.pk %}"
+                class="h-13 min-h-12 flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white text-red-500 text-sm font-semibold hover:bg-red-500 hover:text-white transition-all"
+            >
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                Delete
+            </a>
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <div class="md:col-span-2 bg-white rounded-[2rem] glass-stroke p-12 text-center">
+        <div class="max-w-xs mx-auto">
+            <i data-lucide="database-zap" class="w-14 h-14 text-gray-200 mx-auto mb-5"></i>
+
+            <h3 class="font-black text-sb-navy text-lg">
+                No assets found
+            </h3>
+
+            <p class="text-sm text-gray-400 mt-2 mb-8">
+                Your catalog is empty. Start by adding your first product.
+            </p>
+
+            <a
+                href="{% url 'operations:product_create' %}"
+                class="inline-flex items-center gap-2 px-6 h-12 rounded-2xl bg-sb-navy text-white font-bold hover:bg-sb-teal transition-all"
+            >
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                {{ add_button_label }}
+            </a>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+    <!-- Desktop Table -->
+    <div class="hidden xl:block bg-white rounded-[2rem] glass-stroke overflow-hidden">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="border-b border-gray-100">
@@ -26,41 +158,45 @@
                     <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Management</th>
                 </tr>
             </thead>
+
             <tbody class="divide-y divide-gray-50">
                 {% for item in products %}
                 <tr class="hover:bg-sb-neutral transition-colors group">
                     <td class="px-8 py-6">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-sb-navy group-hover:bg-sb-green group-hover:text-white transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-sb-navy group-hover:bg-sb-green group-hover:text-white transition-all shrink-0">
                                 <i data-lucide="package" class="w-5 h-5"></i>
                             </div>
-                            <div>
-                                <p class="font-bold text-sb-navy">{{ item.name }}</p>
+                            <div class="min-w-0">
+                                <p class="font-bold text-sb-navy truncate">{{ item.name }}</p>
                                 <p class="text-xs text-gray-400 font-medium">{{ item.category.name|default:"General" }}</p>
                             </div>
                         </div>
                     </td>
+
                     <td class="px-8 py-6 text-center">
                         {% if item.product_type == 'MATERIAL' %}
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20">
-                           <span class="w-1.5 h-1.5 rounded-full bg-sb-green"></span> Raw Material
+                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20 whitespace-nowrap">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sb-green"></span> Raw Material
                         </span>
                         {% else %}
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sb-teal/10 text-sb-teal text-[10px] font-black uppercase tracking-wider border border-sb-teal/20">
-                           <span class="w-1.5 h-1.5 rounded-full bg-sb-teal"></span> Finished Good
+                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sb-teal/10 text-sb-teal text-[10px] font-black uppercase tracking-wider border border-sb-teal/20 whitespace-nowrap">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sb-teal"></span> Finished Good
                         </span>
                         {% endif %}
                     </td>
+
                     <td class="px-8 py-6">
-                        <p class="font-black text-sb-navy text-lg">{{ item.currency }} {{ item.price }}</p>
+                        <p class="font-black text-sb-navy text-lg whitespace-nowrap">{{ item.currency }} {{ item.price }}</p>
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per {{ item.unit }}</p>
                     </td>
+
                     <td class="px-8 py-6 text-right">
-                        <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <a href="{% url 'operations:product_update' item.pk %}" class="p-2.5 rounded-xl bg-white border border-gray-100 text-sb-navy hover:bg-sb-navy hover:text-white transition-all shadow-sm">
+                        <div class="flex justify-end gap-3">
+                            <a href="{% url 'operations:product_update' item.pk %}" class="min-w-11 min-h-11 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-sb-navy hover:bg-sb-navy hover:text-white transition-all shadow-sm">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </a>
-                            <a href="{% url 'operations:product_delete' item.pk %}" class="p-2.5 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                            <a href="{% url 'operations:product_delete' item.pk %}" class="min-w-11 min-h-11 flex items-center justify-center rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </a>
                         </div>
@@ -73,7 +209,7 @@
                             <i data-lucide="database-zap" class="w-12 h-12 text-gray-200 mx-auto mb-4"></i>
                             <p class="text-sb-navy font-bold">No assets found</p>
                             <p class="text-sm text-gray-400 mt-1 mb-6">Your catalog is empty. Start by adding your first material or product.</p>
-                            <a href="{% url 'operations:product_create' %}" class="text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">{{ add_button_label }} +</a>
+                            <a href="{% url 'operations:product_create' %}" class="inline-flex items-center justify-center min-h-11 text-sb-green font-black text-xs uppercase tracking-widest hover:text-sb-teal transition-colors">{{ add_button_label }} +</a>
                         </div>
                     </td>
                 </tr>
@@ -81,5 +217,6 @@
             </tbody>
         </table>
     </div>
+
 </div>
 {% endblock %}
