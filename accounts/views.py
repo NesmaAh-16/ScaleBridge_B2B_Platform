@@ -202,3 +202,28 @@ def business_dashboard_view(request):
         'notifications': notifications,
         'unread_count': unread_count,
     })
+
+from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
+from django.contrib import messages
+
+class ScaleBridgePasswordResetView(auth_views.PasswordResetView):
+    template_name = 'accounts/password_reset_form.html'
+    email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('accounts:password_reset_done')
+
+    def form_valid(self, form):
+        # Professional Touch: Log that a reset was requested (helpful for debugging)
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': 'accounts/password_reset_email_html.html', # Send professional HTML email
+        }
+        form.save(**opts)
+        messages.info(self.request, "If an account exists with that email, a reset link has been sent.")
+        return super().form_valid(form)

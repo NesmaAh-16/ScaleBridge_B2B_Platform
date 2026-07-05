@@ -135,3 +135,16 @@ SESSION_SAVE_EVERY_REQUEST = True
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+
+# Use the standard SMTP backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'nesmalubbad@gmail.com' 
+EMAIL_HOST_PASSWORD = 'qgtfigyjzgcdhxuf' 
+
+# This is what people see in their inbox
+DEFAULT_FROM_EMAIL = 'ScaleBridge <nesmalubbad@gmail.com>'
