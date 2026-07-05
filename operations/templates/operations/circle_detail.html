@@ -3,30 +3,31 @@
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<div class="space-y-8 max-w-4xl mx-auto">
 
-    <!-- Back link -->
-    <a href="{% url 'operations:buying_circle_list' %}" class="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
+<div class="space-y-6 lg:space-y-8 max-w-6xl mx-auto">
+
+    <a href="{% url 'operations:buying_circle_list' %}" class="min-h-11 inline-flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> All Circles
     </a>
 
-    <!-- Header -->
-    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-
-            <div class="flex items-start gap-5">
+            <div class="flex items-start gap-4 sm:gap-5">
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0
                     {% if circle.status == 'Open' %}bg-sb-teal/10{% elif circle.status == 'Closed' %}bg-sb-green/10{% else %}bg-gray-100{% endif %}">
                     <i data-lucide="users" class="w-8 h-8
                         {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}"></i>
                 </div>
-                <div>
+
+                <div class="min-w-0">
                     <span class="text-[10px] font-black uppercase tracking-widest
                         {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}">
                         {{ circle.status }}
                     </span>
-                    <h1 class="text-2xl font-black text-sb-navy mt-1">{{ circle.product.name }}</h1>
-                    <p class="text-sm text-slate-500 mt-1">
+                    <h1 class="text-xl sm:text-2xl font-black text-sb-navy mt-1 leading-tight">
+                        {{ circle.product.name }}
+                    </h1>
+                    <p class="text-sm text-slate-500 mt-1 leading-relaxed">
                         Supplier: <span class="font-bold text-sb-navy">{{ circle.product.business.business_name }}</span>
                         &nbsp;·&nbsp;
                         <span class="font-bold text-sb-navy">{{ circle.product.currency }} {{ circle.product.price }}</span> / {{ circle.product.unit }}
@@ -40,9 +41,8 @@
                 </div>
             </div>
 
-            <!-- Status badge -->
-            <div class="shrink-0 text-center">
-                <div class="text-4xl font-black
+            <div class="shrink-0 text-left md:text-center">
+                <div class="text-4xl lg:text-5xl font-black
                     {% if circle.progress_percentage >= 100 %}text-sb-green{% else %}text-sb-navy{% endif %}">
                     {{ circle.progress_percentage }}%
                 </div>
@@ -50,20 +50,21 @@
             </div>
         </div>
 
-        <!-- Progress bar -->
-        <div class="mt-8 space-y-2">
-            <div class="flex justify-between items-center">
+        <div class="mt-8 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                 <span class="text-sm font-black text-sb-navy">
                     {{ circle.current_quantity|floatformat:0 }} / {{ circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}
                 </span>
                 <span class="text-xs text-slate-400 font-bold">Target Progress</span>
             </div>
-            <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+
+            <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500
                     {% if circle.progress_percentage >= 100 %}bg-sb-green{% else %}bg-sb-teal{% endif %}"
                     style="width: {{ circle.progress_percentage }}%;">
                 </div>
             </div>
+
             {% if circle.is_reached %}
                 <p class="text-xs font-bold text-sb-green">Target reached — purchase order sent to supplier.</p>
             {% elif circle.progress_percentage == 0 %}
@@ -76,31 +77,30 @@
         </div>
     </div>
 
-    <div class="grid {% if is_enterprise %}md:grid-cols-2{% else %}md:grid-cols-1 max-w-xl mx-auto w-full{% endif %} gap-8">
+    <div class="grid {% if is_enterprise %}grid-cols-1 md:grid-cols-2{% else %}grid-cols-1 max-w-xl mx-auto w-full{% endif %} gap-6 lg:gap-8">
 
         {% if is_enterprise %}
-        <!-- Members list — supplier only -->
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
             <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
                 Members ({{ members.count }})
             </h2>
 
             {% if members %}
-            <ul class="space-y-3">
+            <ul class="space-y-4">
                 {% for m in members %}
-                <li class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-sb-neutral flex items-center justify-center text-sb-navy font-black text-sm">
+                <li class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 border-b border-slate-50 last:border-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-sb-neutral flex items-center justify-center text-sb-navy font-black text-sm shrink-0">
                             {{ m.business.business_name|slice:":1"|upper }}
                         </div>
-                        <div>
-                            <p class="font-bold text-sb-navy text-sm">{{ m.business.business_name }}</p>
+                        <div class="min-w-0">
+                            <p class="font-bold text-sb-navy text-sm truncate">{{ m.business.business_name }}</p>
                             {% if circle.created_by == m.business %}
                                 <p class="text-[9px] font-black text-sb-green uppercase tracking-widest">Circle Starter</p>
                             {% endif %}
                         </div>
                     </div>
-                    <span class="text-sm font-black text-sb-navy">
+                    <span class="text-base font-black text-sb-navy">
                         {{ m.requested_quantity|floatformat:0 }} <span class="text-xs font-medium text-slate-400">{{ circle.product.unit }}</span>
                     </span>
                 </li>
@@ -112,33 +112,31 @@
         </div>
         {% endif %}
 
-        <!-- Join / Leave / Status panel -->
         <div class="space-y-6">
 
             {% if is_member and circle.status == 'Open' %}
-            <!-- Leave -->
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
                 <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Your Membership</h2>
                 <p class="text-sm text-slate-600 font-medium mb-1">
                     You have committed
                     <span class="font-black text-sb-navy">{{ user_membership.requested_quantity|floatformat:0 }} {{ circle.product.unit }}</span>.
                 </p>
-                <p class="text-xs text-slate-400 mb-6">Leaving will remove your quantity from the circle total.</p>
+                <p class="text-xs text-slate-400 mb-6 leading-relaxed">Leaving will remove your quantity from the circle total.</p>
+
                 <form method="POST" action="{% url 'operations:circle_leave' circle.pk %}">
                     {% csrf_token %}
                     <button type="submit"
                         onclick="return confirm('Leave this buying circle?')"
-                        class="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                        class="w-full h-14 rounded-2xl border border-red-200 text-red-500 text-sm font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                         Leave Circle
                     </button>
                 </form>
             </div>
 
             {% elif can_join %}
-            <!-- Join -->
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
                 <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Join This Circle</h2>
-                <p class="text-sm text-slate-500 font-medium mb-6">
+                <p class="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
                     Enter how much <span class="font-bold text-sb-navy">{{ circle.product.unit }}</span> you need.
                     Once the group reaches <span class="font-bold text-sb-navy">{{ circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}</span>,
                     the order goes to the supplier automatically.
@@ -155,7 +153,7 @@
                             {% if join_form.requested_quantity.errors %}
                                 <p class="mt-1 text-xs text-red-500 font-bold">{{ join_form.requested_quantity.errors.0 }}</p>
                             {% endif %}
-                            <p class="mt-1 text-[10px] text-slate-400 font-medium">
+                            <p class="mt-2 text-[10px] text-slate-400 font-medium leading-relaxed">
                                 Remaining capacity:
                                 <span class="font-black text-sb-navy">{{ circle.target_quantity|floatformat:0|add:"0" }}</span>
                                 &minus;
@@ -165,7 +163,8 @@
                                 {{ circle.product.unit }}
                             </p>
                         </div>
-                        <button type="submit" class="w-full py-4 bg-sb-navy text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:shadow-glow transition-all">
+
+                        <button type="submit" class="w-full h-14 bg-sb-navy text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:shadow-glow transition-all">
                             Join Circle
                         </button>
                     </div>
@@ -173,29 +172,26 @@
             </div>
 
             {% elif is_member and circle.status != 'Open' %}
-            <!-- Closed, was a member -->
-            <div class="bg-sb-green/5 rounded-[2rem] border border-sb-green/20 p-8 text-center">
+            <div class="bg-sb-green/5 rounded-[2rem] border border-sb-green/20 p-6 sm:p-8 lg:p-10 text-center">
                 <i data-lucide="check-circle-2" class="w-10 h-10 text-sb-green mx-auto mb-3"></i>
                 <h3 class="font-black text-sb-navy text-lg">Circle Closed</h3>
-                <p class="text-sm text-slate-500 mt-2 font-medium">The target was reached. A purchase order has been placed with the supplier.</p>
+                <p class="text-sm text-slate-500 mt-2 font-medium leading-relaxed">The target was reached. A purchase order has been placed with the supplier.</p>
             </div>
 
             {% elif circle.status != 'Open' %}
-            <!-- Closed, non-member -->
-            <div class="bg-gray-50 rounded-[2rem] border border-slate-100 p-8 text-center">
+            <div class="bg-gray-50 rounded-[2rem] border border-slate-100 p-6 sm:p-8 lg:p-10 text-center">
                 <i data-lucide="lock" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
                 <h3 class="font-black text-sb-navy text-lg">Circle Closed</h3>
-                <p class="text-sm text-slate-400 mt-2 font-medium">This circle is no longer accepting new members.</p>
-                <a href="{% url 'operations:marketplace' %}" class="mt-6 inline-block text-[10px] font-black text-sb-teal uppercase tracking-widest hover:text-sb-navy transition-colors">
+                <p class="text-sm text-slate-400 mt-2 font-medium leading-relaxed">This circle is no longer accepting new members.</p>
+                <a href="{% url 'operations:marketplace' %}" class="mt-6 h-12 inline-flex items-center justify-center text-[10px] font-black text-sb-teal uppercase tracking-widest hover:text-sb-navy transition-colors">
                     Browse Marketplace →
                 </a>
             </div>
 
             {% else %}
-            <!-- Not logged in or enterprise user viewing -->
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 text-center">
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10 text-center">
                 <i data-lucide="info" class="w-10 h-10 text-slate-200 mx-auto mb-3"></i>
-                <p class="text-sm text-slate-400 font-medium">
+                <p class="text-sm text-slate-400 font-medium leading-relaxed">
                     {% if not user %}
                         <a href="{% url 'accounts:login' %}" class="font-black text-sb-teal hover:text-sb-navy">Log in</a> to join this circle.
                     {% else %}
@@ -218,7 +214,6 @@
     var remaining = target - current;
     var unit    = "{{ circle.product.unit }}";
 
-    // Show live remaining capacity
     var remainingEl = document.getElementById('remaining-qty');
     if (remainingEl) remainingEl.textContent = remaining.toLocaleString();
 
