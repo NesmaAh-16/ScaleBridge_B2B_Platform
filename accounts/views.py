@@ -202,40 +202,28 @@ def business_dashboard_view(request):
         'notifications': notifications,
         'unread_count': unread_count,
     })
-@login_required
-@role_required('Admin')
-def pending_businesses_view(request):
-    pending_businesses = Business.objects.filter(
-        verification_status='pending'
-    ).select_related('user')
 
-    return render(
-        request,
-        'accounts/pending_businesses.html',
-        {
-            'pending_businesses': pending_businesses
+from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
+from django.contrib import messages
+
+class ScaleBridgePasswordResetView(auth_views.PasswordResetView):
+    template_name = 'accounts/password_reset_form.html'
+    email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('accounts:password_reset_done')
+
+    def form_valid(self, form):
+        # Professional Touch: Log that a reset was requested (helpful for debugging)
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': 'accounts/password_reset_email_html.html', # Send professional HTML email
         }
-    )
-
-
-
-@login_required
-@role_required('Admin')
-def update_business_verification(request, business_id, action):
-    if request.method != 'POST':
-        return redirect('accounts:pending_businesses')
-
-    business = get_object_or_404(Business, id=business_id)
-
-    if action == 'approve':
-        business.verification_status = 'approved'
-        messages.success(request, f'{business.business_name} has been approved.')
-    elif action == 'reject':
-        business.verification_status = 'rejected'
-        messages.warning(request, f'{business.business_name} has been rejected.')
-    else:
-        messages.error(request, 'Invalid verification action.')
-        return redirect('accounts:pending_businesses')
-
-    business.save()
-    return redirect('accounts:pending_businesses')
+        form.save(**opts)
+        messages.info(self.request, "If an account exists with that email, a reset link has been sent.")
+        return super().form_valid(form)
