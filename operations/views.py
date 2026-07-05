@@ -3,17 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.decorators import role_required
 from accounts.models import Business
+from .models import Product, Category, BuyingCircle, BuyingCircleMember, Order, Notification
+from django.db.models import Q
 from .models import Product, Category, BuyingCircle, BuyingCircleMember, Order
-<<<<<<< HEAD
 from .forms import ProductForm, BuyingCircleForm, JoinCircleForm
 from django.db import transaction
-
-=======
 from .forms import ProductForm, BuyingCircleForm, JoinCircleForm, ReviewForm
 from django.db import transaction 
 from .models import Notification 
 from django.db.models import Q
->>>>>>> aeee645255b9d4cd984006b2d02d0ed680989597
+
 
 # ---------------------------------------------------------------------------
 # Product CRUD
