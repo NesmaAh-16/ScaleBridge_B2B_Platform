@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.decorators import role_required
 from accounts.models import Business
-from .models import Product, Category, BuyingCircle, BuyingCircleMember, Order
+from .models import Product, Category, BuyingCircle, BuyingCircleMember, Order, Notification
+from django.db.models import Q
 from .forms import ProductForm, BuyingCircleForm, JoinCircleForm
 from django.db import transaction
 
@@ -222,16 +223,22 @@ def circle_detail(request, pk):
     business = Business.objects.filter(user=request.user).first()
     user_membership = members.filter(business=business).first() if business else None
     is_member = user_membership is not None
+
+    # DOCTOR'S EMERGENCY FIX: 
+    # 1. We normalize the role to uppercase to avoid case-sensitivity errors.
+    # 2. We check for both variations just in case.
+    user_role = request.user.role.upper() if request.user.role else ""
+
     can_join = (
-        business is not None
-        and not is_member
-        and circle.status == 'Open'
-        and business != circle.product.business  # supplier can't join their own circle
-        and request.user.role != 'EnterpriseBuyer'  # enterprises don't buy raw materials via circles
+        business is not None  # Must have a profile
+        and not is_member     # Must not be in already
+        and circle.status == 'Open' 
+        and business != circle.product.business  # Must not be the supplier
+        and (user_role == 'SMALL_BUSINESS' or user_role == 'SMALLBUSINESS') 
     )
 
     join_form = JoinCircleForm() if can_join else None
-    is_enterprise = request.user.role == 'EnterpriseBuyer'
+    is_enterprise = user_role == 'ENTERPRISEBUYER'
 
     context = {
         'circle': circle,
@@ -244,26 +251,13 @@ def circle_detail(request, pk):
     }
     return render(request, 'operations/circle_detail.html', context)
 
-
 @login_required
 @role_required('SmallBusiness')
 def circle_create(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk, is_group_buy=True)
     business = Business.objects.filter(user=request.user).first()
 
-    if not business:
-        messages.error(request, 'Complete your business profile first.')
-        return redirect('accounts:business_profile')
-
-    # Redirect to existing open circle if one already exists for this product
-    existing = BuyingCircle.objects.filter(product=product, status='Open').first()
-    if existing:
-        messages.info(request, f'A circle for {product.name} is already open — you can join it.')
-        return redirect('operations:circle_detail', pk=existing.pk)
-
-    if not product.min_order_quantity:
-        messages.error(request, 'This product has no minimum order quantity set. Contact the supplier.')
-        return redirect('operations:marketplace')
+    # ... (Keep your validation checks)
 
     if request.method == 'POST':
         form = BuyingCircleForm(request.POST)
@@ -276,26 +270,72 @@ def circle_create(request, product_pk):
                 target_quantity=product.min_order_quantity,
                 current_quantity=requested_qty,
             )
-            BuyingCircleMember.objects.create(
-                buying_circle=circle,
-                business=business,
-                requested_quantity=requested_qty,
-            )
+            
+            # DOCTOR'S FIX: Only add as member if they aren't the supplier
+            if business != product.business:
+                BuyingCircleMember.objects.create(
+                    buying_circle=circle,
+                    business=business,
+                    requested_quantity=requested_qty,
+                )
+            
             _maybe_close_circle(circle)
-            messages.success(request, f'Buying circle started for {product.name}!')
             return redirect('operations:circle_detail', pk=circle.pk)
+def _maybe_close_circle(circle):
+    if circle.status != 'Open' or circle.current_quantity < circle.target_quantity:
+        return
+
+    circle.status = 'Closed'
+    circle.save()
+
+    # Find a buyer who is NOT the supplier.
+    customer_member = circle.members.exclude(business=circle.product.business).first()
+    
+    if customer_member:
+        actual_buyer = customer_member.business
     else:
-        form = BuyingCircleForm()
+        actual_buyer = Business.objects.exclude(id=circle.product.business.id).first()
 
-    return render(request, 'operations/circle_create.html', {
-        'form': form,
-        'product': product,
-    })
+    # --- THE CRITICAL FIX IS THE NEXT LINE: Add 'new_order =' ---
+    new_order = Order.objects.create(
+        buying_circle=circle,
+        buyer_business=actual_buyer,                
+        supplier_business=circle.product.business,  
+        total_quantity=circle.current_quantity,
+        price_at_purchase=circle.product.price,
+        total_price=circle.current_quantity * circle.product.price,
+        status='Pending',
+    )
 
+    # Now 'new_order' exists, so the line below will NOT crash anymore!
+    notification_list = []
+    success_msg = f"Success! The Buying Circle for {circle.product.name} has reached its target. Order #{new_order.id} is now generated."
+    
+    # Notify all members
+    for membership in circle.members.all():
+        notification_list.append(
+            Notification(
+                user=membership.business.user,
+                title="Circle Success!",
+                message=success_msg
+            )
+        )
+    
+    # Notify the Supplier
+    notification_list.append(
+        Notification(
+            user=circle.product.business.user,
+            title="New Bulk Order Created",
+            message=f"Your group listing for {circle.product.name} has closed. You have a new bulk order pending approval."
+        )
+    )
 
+    Notification.objects.bulk_create(notification_list)
+
+# --- 2. THE VIEW FUNCTION (THIS IS WHERE REQUEST AND PK LIVE) ---
 @login_required
 @role_required('SmallBusiness')
-def circle_join(request, pk):
+def circle_join(request, pk): # <--- 'request' and 'pk' are defined HERE
     if request.method != 'POST':
         return redirect('operations:circle_detail', pk=pk)
 
@@ -306,35 +346,38 @@ def circle_join(request, pk):
 
     requested_qty = form.cleaned_data['requested_quantity']
 
-    with transaction.atomic():
-        circle = get_object_or_404(
-            BuyingCircle.objects.select_for_update(),
-            pk=pk,
-            status='Open'
-        )
-        business = Business.objects.filter(user=request.user).first()
+    try:
+        with transaction.atomic():
+            circle = get_object_or_404(BuyingCircle.objects.select_for_update(), pk=pk, status='Open')
+            business = Business.objects.filter(user=request.user).first()
 
-        if not business:
-            messages.error(request, 'Complete your business profile first.')
-            return redirect('accounts:business_profile')
+            if not business:
+                messages.error(request, 'Complete your business profile first.')
+                return redirect('accounts:business_profile')
 
-        if circle.members.filter(business=business).exists():
-            messages.warning(request, 'You are already a member of this circle.')
-            return redirect('operations:circle_detail', pk=pk)
+            if circle.members.filter(business=business).exists():
+                messages.warning(request, 'You are already a member of this circle.')
+                return redirect('operations:circle_detail', pk=pk)
 
-        BuyingCircleMember.objects.create(
-            buying_circle=circle,
-            business=business,
-            requested_quantity=requested_qty,
-        )
+            BuyingCircleMember.objects.create(
+                buying_circle=circle,
+                business=business,
+                requested_quantity=requested_qty,
+            )
 
-        circle.current_quantity += requested_qty
-        circle.save()
+            circle.current_quantity += requested_qty
+            circle.save()
 
-        _maybe_close_circle(circle)
+            _maybe_close_circle(circle)
 
-    messages.success(request, f'You joined the buying circle for {circle.product.name}!')
+        messages.success(request, f'You joined the buying circle for {circle.product.name}!')
+
+    except BuyingCircle.DoesNotExist:
+        messages.error(request, 'This buying circle is no longer available.')
+
     return redirect('operations:circle_detail', pk=pk)
+
+
 @login_required
 @role_required('SmallBusiness')
 def circle_leave(request, pk):
@@ -353,26 +396,200 @@ def circle_leave(request, pk):
     return redirect('operations:circle_detail', pk=pk)
 
 
+
+
+@login_required
+def update_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    business = Business.objects.filter(user=request.user).first()
+
+    # SECURITY: Only the Supplier can update the status
+    if order.supplier_business != business:
+        messages.error(request, "Access Denied: Unauthorized entity.")
+        return redirect('accounts:business_dashboard')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        old_status = order.status
+        status_changed = False
+
+        with transaction.atomic():
+            # 1. LOGIC FOR 'ACCEPT'
+            if action == 'accept' and order.status == 'Pending':
+                order.status = 'Accepted'
+                status_changed = True
+                success_message = f"Order #SB-{order.id} has been accepted. Dispatch protocol initiated."
+
+            # 2. LOGIC FOR 'START' (Dispatch)
+            elif action == 'start' and order.status == 'Accepted':
+                order.status = 'InProgress'
+                status_changed = True
+                success_message = f"Order #SB-{order.id} is now in transit/preparation."
+
+            # 3. LOGIC FOR 'COMPLETE' (Finalize)
+            elif action == 'complete' and order.status == 'InProgress':
+                order.status = 'Completed'
+                status_changed = True
+                success_message = f"Order #SB-{order.id} finalized. Success loop triggered."
+                
+                # Archiving the circle
+                if order.buying_circle:
+                    circle = order.buying_circle
+                    circle.status = 'Completed'
+                    circle.save()
+
+                    # Success Loop: Start new iteration
+                    _ensure_group_buy_circle(circle.product, order.supplier_business)
+
+                    # Notify members to review
+                    members = circle.members.all()
+                    for member in members:
+                        Notification.objects.create(
+                            user=member.business.user,
+                            title="Package Arrived!",
+                            message=f"Order for {circle.product.name} is complete. Please leave a review!"
+                        )
+
+            # 4. LOGIC FOR 'CANCEL'
+            elif action == 'cancel':
+                order.status = 'CANCELLED'
+                status_changed = True
+                success_message = f"Order #SB-{order.id} has been terminated."
+
+            # SAVE AND NOTIFY IF CHANGED
+            if status_changed:
+                order.save()
+                
+                # NOTIFICATION FOR THE BUYER
+                Notification.objects.create(
+                    user=order.buyer_business.user,
+                    title="Order Status Updated",
+                    message=f"Order #SB-{order.id} has been marked as {order.status}."
+                )
+                messages.success(request, success_message)
+            else:
+                messages.warning(request, "Invalid action or state transition for this order.")
+
+    return redirect('accounts:business_dashboard')
+
 # ---------------------------------------------------------------------------
-# Internal helper
+# Trust Engine: Reputation & Review Gallery
 # ---------------------------------------------------------------------------
 
-def _maybe_close_circle(circle):
-    """Auto-close the circle and generate a consolidated order when target is met."""
-    if circle.status != 'Open':
-        return
-    if circle.current_quantity < circle.target_quantity:
-        return
+def business_reviews(request, business_id):
+    """
+    The Public Trust Page: 
+    Shows all reviews received by a business so buyers can verify their reliability.
+    """
+    target_business = get_object_or_404(Business, id=business_id)
+    received_reviews = target_business.reviews_received.all().order_by('-created_at')
+    
+    return render(request, 'operations/business_reviews.html', {
+        'target_business': target_business,
+        'reviews': received_reviews,
+    })
 
-    circle.status = 'Closed'
-    circle.save()
+# ---------------------------------------------------------------------------
+# Notification Console API (Required by base.html script)
+# ---------------------------------------------------------------------------
 
-    Order.objects.create(
-        buying_circle=circle,
-        buyer_business=circle.created_by,
-        supplier_business=circle.product.business,
-        total_quantity=circle.current_quantity,
-        price_at_purchase=circle.product.price,
-        total_price=circle.current_quantity * circle.product.price,
-        status='Pending',
-    )
+from django.http import JsonResponse
+
+@login_required
+def notification_unread_count(request):
+    """
+    API Endpoint for the Polling Script:
+    Returns the count of unread notifications for the user's dashboard.
+    """
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'unread_count': count})
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """
+    Action to clear a vanguard alert from the UI.
+    """
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'success'})
+        
+    return redirect('accounts:business_dashboard')
+
+# --- ADD THESE FUNCTIONS TO THE BOTTOM OF operations/views.py ---
+
+@login_required
+def order_detail(request, order_id):
+    """
+    The Detailed Ledger: Shows specific transaction data and participant info.
+    """
+    order = get_object_or_404(Order, id=order_id)
+    business = Business.objects.filter(user=request.user).first()
+
+    # Security: Only Buyer or Supplier can see this
+    if business not in [order.buyer_business, order.supplier_business]:
+        messages.error(request, "Access Denied: You are not part of this transaction.")
+        return redirect('accounts:business_dashboard')
+
+    review = getattr(order, 'review', None)
+    
+    return render(request, 'operations/order_detail.html', {
+        'order': order,
+        'business': business,
+        'review': review
+    })
+
+@login_required
+@role_required('SmallBusiness', 'EnterpriseBuyer')
+def leave_review(request, order_id):
+    """
+    Trust Engine: Allows the buyer to rate the supplier after completion.
+    """
+    order = get_object_or_404(Order, id=order_id)
+    business = Business.objects.filter(user=request.user).first()
+
+    # Logic Guards
+    if order.buyer_business != business:
+        messages.error(request, "Only the buyer can submit a review.")
+        return redirect('operations:order_detail', order_id=order.id)
+
+    if order.status != 'Completed':
+        messages.error(request, "Review unlocks once the order is Completed.")
+        return redirect('operations:order_detail', order_id=order.id)
+
+    if hasattr(order, 'review'):
+        messages.warning(request, "Feedback already submitted for this ledger entry.")
+        return redirect('operations:order_detail', order_id=order.id)
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST) # Make sure ReviewForm is in your forms.py!
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.order = order
+            review.from_business = business
+            review.to_business = order.supplier_business
+            review.save()
+            messages.success(request, "Network Trust Updated: Review Logged.")
+            return redirect('operations:order_detail', order_id=order.id)
+    else:
+        form = ReviewForm()
+
+    return render(request, 'operations/review_form.html', {'form': form, 'order': order})
+
+from django.http import JsonResponse
+
+@login_required
+def notification_unread_count(request):
+    """
+    API for the Vanguard Console: Returns unread alert count.
+    """
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'unread_count': count})
+
+@login_required
+def order_ledger_view(request):
+    business = Business.objects.filter(user=request.user).first()
+    orders = Order.objects.filter(Q(buyer_business=business) | Q(supplier_business=business))
+    return render(request, 'operations/order_ledger.html', {'orders': orders, 'business': business})

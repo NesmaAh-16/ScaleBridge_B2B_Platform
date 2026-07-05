@@ -123,6 +123,11 @@ class Order(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        if self.buying_circle:
+            return f"Bulk Order: {self.buying_circle.product.name} (Group Order)"
+        return f"Direct Order: {self.id} - {self.buyer_business.business_name}"
 
 class Review(models.Model):
     from_business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='reviews_given')
@@ -147,3 +152,7 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False) # is_read TINYINT
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.email}"
+    
