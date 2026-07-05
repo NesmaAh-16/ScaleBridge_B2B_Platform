@@ -39,6 +39,22 @@
         },
       };
     </script>
+    <script>
+      // Simple polling logic for the UI Toast
+function checkNotifications() {
+    fetch('/api/notifications/unread/') // You will need a simple view for this
+        .then(response => response.json())
+        .then(data => {
+            if (data.unread_count > 0) {
+                // Use a library like Toastr or just a custom div
+                showToast("You have a new success alert! Check your dashboard.");
+            }
+        });
+}
+
+// Check every 30 seconds
+setInterval(checkNotifications, 30000);
+    </script>
     <style>
       .glass-stroke {
         box-shadow:
@@ -212,6 +228,10 @@
         {{ buying_circles.count|default:"0" }}
     </span>
 </a>
+<a href="{% url 'operations:order_ledger' %}" class="{% if 'ledger' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all">
+              <i data-lucide="clipboard-list" class="w-5 h-5 text-sb-green"></i>
+              <span x-show="!sidebarCollapsed" class="font-bold text-sm">Active Ledger</span>
+            </a>
   {% endif %}
 </nav>
         <!-- ACCOUNT MANAGEMENT SECTION (Interactive) -->
@@ -345,6 +365,21 @@
 
         <main class="flex-1 overflow-y-auto p-12 custom-scrollbar">
           <div class="max-w-[1500px] mx-auto">
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+              {% for message in messages %}
+              <div
+                class="rounded-2xl px-5 py-4 font-semibold shadow-sm border
+                  {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700
+                  {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700
+                  {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700
+                  {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}"
+              >
+                {{ message }}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
             {% block content %}{% endblock %}
           </div>
         </main>
