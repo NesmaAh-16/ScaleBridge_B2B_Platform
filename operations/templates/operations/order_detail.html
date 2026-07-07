@@ -4,23 +4,25 @@
 {% block page_title %}Order Ledger: #SB-{{ order.id }}{% endblock %}
 
 {% block content %}
-<div class="space-y-8 animate-in fade-in duration-700">
-    
-    <!-- 1. HEADER BAR: Status Intelligence -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-white glass-stroke">
+<div class="space-y-6 lg:space-y-8 animate-in fade-in duration-700">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/70 backdrop-blur-md p-6 lg:p-8 rounded-[2rem] border border-white glass-stroke">
         <div class="flex items-center gap-4">
-            <div class="p-4 bg-sb-navy rounded-2xl shadow-xl">
-                <i data-lucide="file-text" class="w-8 h-8 text-sb-green"></i>
+            <div class="p-4 bg-sb-navy rounded-2xl shadow-xl shrink-0">
+                <i data-lucide="file-text" class="w-7 h-7 sm:w-8 sm:h-8 text-sb-green"></i>
             </div>
-            <div>
-                <h1 class="text-3xl font-black tracking-tighter text-sb-navy">Invoice #SB-{{ order.id }}</h1>
+            <div class="min-w-0">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tighter text-sb-navy truncate">
+                    Invoice #SB-{{ order.id }}
+                </h1>
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">
                     {% if order.status == 'Completed' %}Archived Transaction{% else %}Live Procurement{% endif %}
                 </p>
             </div>
         </div>
 
-        <div class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-glow
+        <div class="w-full md:w-auto text-center px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-glow
             {% if order.status == 'Completed' %} bg-sb-green text-sb-navy border border-sb-green/30
             {% elif order.status == 'CANCELLED' %} bg-red-500 text-white
             {% else %} bg-sb-navy text-sb-green border border-white/10 {% endif %}">
@@ -28,41 +30,56 @@
         </div>
     </div>
 
-    <!-- 2. NETWORK TRUST CERTIFICATE: Only visible when a review exists -->
     {% if order.review %}
-    <div class="bg-white rounded-[3rem] p-10 shadow-soft-xl border border-sb-green/20 relative overflow-hidden animate-in zoom-in duration-500">
-        <div class="absolute top-0 right-0 p-12 opacity-[0.03]">
-            <i data-lucide="shield-check" class="w-48 h-48 text-sb-green"></i>
+    <div class="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 shadow-soft-xl border border-sb-green/20 relative overflow-hidden animate-in zoom-in duration-500">
+        <div class="absolute top-0 right-0 p-8 lg:p-12 opacity-[0.03] pointer-events-none">
+            <i data-lucide="shield-check" class="w-32 h-32 lg:w-48 lg:h-48 text-sb-green"></i>
         </div>
+
         <div class="relative z-10">
-            <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.3em] mb-8 italic">Network Trust Certificate</h3>
-            <div class="flex flex-col md:flex-row items-start md:items-center gap-12">
+            <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.25em] lg:tracking-[0.3em] mb-6 lg:mb-8 italic">
+                Network Trust Certificate
+            </h3>
+
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-8 lg:gap-12">
                 <div class="space-y-2">
                     <div class="flex items-center gap-1">
                         {% for i in "12345" %}
-                            <i data-lucide="star" class="w-8 h-8 {% if forloop.counter <= order.review.rating %} text-sb-green fill-sb-green {% else %} text-slate-100 {% endif %}"></i>
+                            <i data-lucide="star" class="w-7 h-7 sm:w-8 sm:h-8 {% if forloop.counter <= order.review.rating %} text-sb-green fill-sb-green {% else %} text-slate-100 {% endif %}"></i>
                         {% endfor %}
                     </div>
-                    <p class="text-4xl font-black text-sb-navy tracking-tighter">{{ order.review.rating }}.0 <span class="text-lg text-slate-300">/ 5.0</span></p>
+                    <p class="text-3xl sm:text-4xl font-black text-sb-navy tracking-tighter">
+                        {{ order.review.rating }}.0 <span class="text-lg text-slate-300">/ 5.0</span>
+                    </p>
                 </div>
-                <div class="flex-1 border-l border-slate-100 pl-12">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Buyer Testimony</p>
-                    <blockquote class="text-2xl font-bold text-sb-navy italic leading-snug">"{{ order.review.comment }}"</blockquote>
-                    <p class="mt-4 text-xs font-bold text-sb-teal uppercase tracking-widest">— {{ order.buyer_business.business_name }}</p>
+
+                <div class="flex-1 md:border-l border-slate-100 md:pl-10 lg:pl-12">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">
+                        Buyer Testimony
+                    </p>
+                    <blockquote class="text-xl sm:text-2xl font-bold text-sb-navy italic leading-snug">
+                        "{{ order.review.comment }}"
+                    </blockquote>
+                    <p class="mt-4 text-xs font-bold text-sb-teal uppercase tracking-widest">
+                        — {{ order.buyer_business.business_name }}
+                    </p>
                 </div>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- 3. FULFILLMENT PIPELINE: The visual stepper -->
-    <div class="bg-white p-10 rounded-[3rem] shadow-soft-xl border border-gray-100 relative overflow-hidden">
+    <!-- Fulfillment Pipeline -->
+    <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-[2rem] lg:rounded-[3rem] shadow-soft-xl border border-gray-100 relative overflow-hidden">
         <div class="grainy-overlay absolute inset-0 opacity-[0.02]"></div>
-        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300 mb-12 relative z-10 italic">Fulfillment Pipeline</h3>
-        
-        <div class="relative flex justify-between items-center z-10 px-4 md:px-20">
+
+        <h3 class="text-[10px] font-black uppercase tracking-[0.25em] lg:tracking-[0.3em] text-gray-300 mb-8 lg:mb-12 relative z-10 italic">
+            Fulfillment Pipeline
+        </h3>
+
+        <div class="relative z-10 hidden sm:flex justify-between items-center px-4 lg:px-20">
             <div class="absolute top-1/2 left-0 w-full h-0.5 bg-gray-50 -translate-y-1/2"></div>
-            
+
             {% for status_val, status_label in order.STATUS_CHOICES %}
                 {% if status_val != 'CANCELLED' %}
                 <div class="relative flex flex-col items-center gap-4">
@@ -74,7 +91,29 @@
                         {% endif %}">
                         <i data-lucide="{% if order.status == status_val %}check{% else %}circle{% endif %}" class="w-5 h-5"></i>
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-widest 
+                    <span class="text-[10px] font-black uppercase tracking-widest text-center
+                        {% if order.status == status_val %} text-sb-navy {% else %} text-gray-300 {% endif %}">
+                        {{ status_label }}
+                    </span>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="sm:hidden space-y-4">
+            {% for status_val, status_label in order.STATUS_CHOICES %}
+                {% if status_val != 'CANCELLED' %}
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0
+                        {% if order.status == status_val %}
+                            bg-sb-green text-sb-navy shadow-glow
+                        {% else %}
+                            bg-white border-2 border-gray-100 text-gray-300
+                        {% endif %}">
+                        <i data-lucide="{% if order.status == status_val %}check{% else %}circle{% endif %}" class="w-5 h-5"></i>
+                    </div>
+
+                    <span class="text-xs font-black uppercase tracking-widest
                         {% if order.status == status_val %} text-sb-navy {% else %} text-gray-300 {% endif %}">
                         {{ status_label }}
                     </span>
@@ -84,65 +123,91 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- 4. PRODUCT DATA -->
-        <div class="lg:col-span-2 space-y-8">
-            <div class="bg-sb-navy rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-12 opacity-10 orbit-dot">
-                    <i data-lucide="package" class="w-40 h-48"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+
+        <!-- Product Data -->
+        <div class="lg:col-span-2 space-y-6 lg:space-y-8">
+            <div class="bg-sb-navy rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 lg:p-12 opacity-10 orbit-dot pointer-events-none">
+                    <i data-lucide="package" class="w-28 h-36 lg:w-40 lg:h-48"></i>
                 </div>
+
                 <div class="relative z-10">
-                    <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.4em] mb-6">Asset Intelligence</h3>
-                    <h2 class="text-5xl font-black tracking-tighter mb-4">{{ order.buying_circle.product.name }}</h2>
-                    <p class="text-white/40 font-medium max-w-xl text-lg leading-relaxed italic">{{ order.buying_circle.product.description|default:"No technical documentation provided." }}</p>
-                    
-                    <div class="mt-12 pt-10 border-t border-white/10 flex justify-between items-end">
+                    <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] mb-5 lg:mb-6">
+                        Asset Intelligence
+                    </h3>
+
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter mb-4 leading-tight">
+                        {{ order.buying_circle.product.name }}
+                    </h2>
+
+                    <p class="text-white/50 font-medium max-w-xl text-sm sm:text-base lg:text-lg leading-relaxed italic">
+                        {{ order.buying_circle.product.description|default:"No technical documentation provided." }}
+                    </p>
+
+                    <div class="mt-8 lg:mt-12 pt-8 lg:pt-10 border-t border-white/10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-8">
                         <div>
-                            <p class="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-1">Quantity Reserved</p>
-                            <p class="text-3xl font-black italic">{{ order.total_quantity }} <span class="text-sb-green text-sm">{{ order.buying_circle.product.unit }}</span></p>
+                            <p class="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-1">
+                                Quantity Reserved
+                            </p>
+                            <p class="text-2xl sm:text-3xl font-black italic">
+                                {{ order.total_quantity }}
+                                <span class="text-sb-green text-sm">{{ order.buying_circle.product.unit }}</span>
+                            </p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sb-green text-[10px] font-black uppercase tracking-widest mb-1">Total Payload Value</p>
-                            <p class="text-6xl font-black text-glow-green tracking-tighter italic">${{ order.total_price }}</p>
+
+                        <div class="sm:text-right">
+                            <p class="text-sb-green text-[10px] font-black uppercase tracking-widest mb-1">
+                                Total Payload Value
+                            </p>
+                            <p class="text-4xl sm:text-5xl lg:text-6xl font-black text-glow-green tracking-tighter italic">
+                                ${{ order.total_price }}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 5. NETWORK PARTNERS & CONSOLE -->
-        <div class="space-y-8">
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft-xl border border-gray-100">
-                <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-8 italic">Network Partners</h3>
-                <div class="space-y-8">
-                    <div class="flex items-center gap-5">
-                        <div class="w-12 h-12 rounded-2xl bg-sb-teal/10 flex items-center justify-center text-sb-teal font-black text-sm">S</div>
-                        <div>
+        <!-- Partners + Console -->
+        <div class="space-y-6 lg:space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] shadow-soft-xl border border-gray-100">
+                <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-6 lg:mb-8 italic">
+                    Network Partners
+                </h3>
+
+                <div class="space-y-6 lg:space-y-8">
+                    <div class="flex items-center gap-4 sm:gap-5">
+                        <div class="w-12 h-12 rounded-2xl bg-sb-teal/10 flex items-center justify-center text-sb-teal font-black text-sm shrink-0">S</div>
+                        <div class="min-w-0">
                             <p class="text-[9px] font-black text-sb-green uppercase">Supplier Entity</p>
-                            <p class="text-base font-bold text-sb-navy">{{ order.supplier_business.business_name }}</p>
+                            <p class="text-base font-bold text-sb-navy truncate">{{ order.supplier_business.business_name }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-5">
-                        <div class="w-12 h-12 rounded-2xl bg-sb-navy/5 flex items-center justify-center text-sb-navy font-black text-sm">B</div>
-                        <div>
+
+                    <div class="flex items-center gap-4 sm:gap-5">
+                        <div class="w-12 h-12 rounded-2xl bg-sb-navy/5 flex items-center justify-center text-sb-navy font-black text-sm shrink-0">B</div>
+                        <div class="min-w-0">
                             <p class="text-[9px] font-black text-slate-400 uppercase">Buyer (Lead)</p>
-                            <p class="text-base font-bold text-sb-navy">{{ order.buyer_business.business_name }}</p>
+                            <p class="text-base font-bold text-sb-navy truncate">{{ order.buyer_business.business_name }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- MANAGEMENT CONSOLE: Professional Context-Aware Buttons -->
-            <div class="bg-sb-teal rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
+            <!-- Management Console -->
+            <div class="bg-sb-teal rounded-[2rem] lg:rounded-[2.5rem] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
                 <div class="grainy-overlay absolute inset-0 opacity-10"></div>
+
                 <div class="relative z-10">
-                    <h3 class="text-[10px] font-black uppercase tracking-widest text-white/50 mb-6 italic">Management Console</h3>
-                    
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-white/50 mb-6 italic">
+                        Management Console
+                    </h3>
+
                     {% if order.status == 'Completed' %}
                         {% if not order.review %}
                             {% if business.id == order.buyer_business.id %}
-                                <a href="{% url 'operations:leave_review' order.id %}" class="block w-full py-5 bg-sb-green text-sb-navy text-center font-black rounded-2xl shadow-glow animate-bounce hover:scale-105 transition-all">
+                                <a href="{% url 'operations:leave_review' order.id %}" class="min-h-12 flex items-center justify-center w-full py-4 bg-sb-green text-sb-navy text-center font-black rounded-2xl shadow-glow hover:scale-[1.02] transition-all">
                                     LEAVE FEEDBACK
                                 </a>
                             {% else %}
@@ -159,21 +224,22 @@
                         {% endif %}
 
                     {% elif business.id == order.supplier_business.id %}
-                        <!-- Supplier Action Pipeline -->
                         <form action="{% url 'operations:update_order_status' order.id %}" method="POST" class="space-y-4">
                             {% csrf_token %}
+
                             {% if order.status == 'Pending' %}
-                                <button name="action" value="accept" class="w-full py-5 bg-sb-green text-sb-navy font-black rounded-2xl shadow-glow hover:scale-105 transition-all uppercase tracking-widest">ACCEPT ORDER</button>
+                                <button name="action" value="accept" class="w-full min-h-12 py-4 bg-sb-green text-sb-navy font-black rounded-2xl shadow-glow hover:scale-[1.02] transition-all uppercase tracking-widest">ACCEPT ORDER</button>
                             {% elif order.status == 'Accepted' %}
-                                <button name="action" value="start" class="w-full py-5 bg-white text-sb-navy font-black rounded-2xl hover:scale-105 transition-all uppercase tracking-widest">START PREPERATION</button>
+                                <button name="action" value="start" class="w-full min-h-12 py-4 bg-white text-sb-navy font-black rounded-2xl hover:scale-[1.02] transition-all uppercase tracking-widest">START PREPARATION</button>
                             {% elif order.status == 'InProgress' %}
-                                <button name="action" value="complete" class="w-full py-5 bg-sb-green text-sb-navy font-black rounded-2xl shadow-glow hover:scale-105 transition-all uppercase tracking-widest">FINALIZE DELIVERY</button>
+                                <button name="action" value="complete" class="w-full min-h-12 py-4 bg-sb-green text-sb-navy font-black rounded-2xl shadow-glow hover:scale-[1.02] transition-all uppercase tracking-widest">FINALIZE DELIVERY</button>
                             {% endif %}
-                            
-                            <button name="action" value="cancel" class="w-full py-2 text-[9px] font-black text-white/30 hover:text-red-400 transition-colors uppercase tracking-[0.3em]">Abort Protocol</button>
+
+                            <button name="action" value="cancel" class="w-full min-h-10 text-[9px] font-black text-white/30 hover:text-red-400 transition-colors uppercase tracking-[0.3em]">
+                                Abort Protocol
+                            </button>
                         </form>
                     {% else %}
-                        <!-- Buyer Waiting State -->
                         <div class="text-center py-6">
                             <i data-lucide="refresh-cw" class="w-10 h-10 text-sb-green animate-spin mx-auto mb-4 opacity-50"></i>
                             <p class="text-[10px] font-black uppercase text-white/40 tracking-widest">Tracking Live Update...</p>
@@ -183,5 +249,6 @@
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
