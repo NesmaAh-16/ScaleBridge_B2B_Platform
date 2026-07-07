@@ -34,6 +34,7 @@
         },
       };
     </script>
+
     <style>
       .glass-stroke {
         box-shadow:
@@ -199,6 +200,13 @@
               <span class="font-semibold text-sm">Buying Circles</span>
             </a>
 
+            <a href="{% url 'operations:order_ledger' %}"
+              @click="mobileMenuOpen = false"
+              class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
+              <i data-lucide="briefcase-business" class="w-5 h-5"></i>
+              <span class="font-semibold text-sm">Active Ledger</span>
+            </a>
+
             <a href="{% url 'accounts:business_profile' %}"
               @click="mobileMenuOpen = false"
               class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
@@ -305,12 +313,24 @@
             </a>
 
             <a href="{% url 'operations:buying_circle_list' %}"
-               class="{% if 'buying_circle' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+               class="{% if 'circles' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
               <i data-lucide="refresh-cw" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-700"></i>
               <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Buying Circles</span>
               <span x-show="!sidebarCollapsed" class="ml-auto bg-sb-green text-sb-navy text-[10px] font-black px-2.5 py-1 rounded-lg border border-white/10">
                 {{ buying_circles.count|default:"0" }}
               </span>
+            </a>
+
+            <a href="{% url 'operations:order_ledger' %}"
+               class="{% if 'ledger' in request.path or 'orders' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+              <i data-lucide="briefcase-business" class="w-5 h-5"></i>
+              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Active Ledger</span>
+            </a>
+
+            <a href="{% url 'accounts:business_profile' %}"
+               class="{% if 'business/profile' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
+              <i data-lucide="briefcase" class="w-5 h-5"></i>
+              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Business Profile</span>
             </a>
           {% endif %}
         </nav>
@@ -377,129 +397,116 @@
       </aside>
 
       <!-- MAIN WINDOW -->
-<div class="flex-1 flex flex-col min-w-0">
+      <div class="flex-1 flex flex-col min-w-0">
 
-  <header
-    class="min-h-20 lg:h-24 glass-blur flex items-center justify-between px-4 sm:px-6 lg:px-10 sticky top-0 z-30"
-  >
-
-    <!-- LEFT -->
-    <div class="flex items-center gap-3 sm:gap-8">
-
-      <!-- Mobile / Tablet Menu -->
-      <button
-        @click="mobileMenuOpen = true"
-        class="xl:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all"
-        type="button"
-      >
-        <i data-lucide="menu" class="w-5 h-5"></i>
-      </button>
-
-      <!-- Desktop Collapse -->
-      <button
-        @click="sidebarCollapsed = !sidebarCollapsed"
-        class="hidden xl:flex min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all items-center justify-center"
-        type="button"
-      >
-        <i
-          data-lucide="chevron-left"
-          class="w-5 h-5 transition-transform duration-500"
-          :class="sidebarCollapsed ? 'rotate-180' : ''"
-        ></i>
-      </button>
-
-      <div class="min-w-0">
-        <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-sb-navy tracking-tight truncate">
-          {% block page_title %}Network Insight{% endblock %}
-        </h2>
-
-        <div class="flex items-center gap-2 mt-1">
-          <span class="w-2 h-2 rounded-full bg-sb-green animate-pulse shrink-0"></span>
-
-          <p class="hidden sm:block text-[10px] text-gray-400 font-bold uppercase tracking-[0.15em] truncate">
-            System Live: Global Procurement Active
-          </p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT -->
-    <div class="flex items-center gap-2 sm:gap-3 lg:gap-6 shrink-0">
-
-      <!-- Desktop Search -->
-      <div
-        class="hidden lg:flex items-center bg-gray-100/50 border border-gray-200 rounded-2xl px-5 py-3 w-72 focus-within:ring-4 focus-within:ring-sb-navy/5 focus-within:bg-white transition-all group"
-      >
-        <i
-          data-lucide="command"
-          class="w-4 h-4 text-gray-400 group-focus-within:text-sb-navy transition-colors"
-        ></i>
-
-        <input
-          type="text"
-          placeholder="Search Console..."
-          class="bg-transparent border-none text-xs ml-3 focus:outline-none w-full font-semibold"
-        />
-      </div>
-
-      <!-- Mobile / Tablet Search -->
-      <button
-        class="lg:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all"
-        type="button"
-      >
-        <i data-lucide="search" class="w-5 h-5 text-sb-navy"></i>
-      </button>
-
-      <!-- Notifications -->
-      <button
-        class="min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all relative group"
-        type="button"
-      >
-        <i
-          data-lucide="bell-ring"
-          class="w-5 h-5 text-gray-400 group-hover:text-sb-teal"
-        ></i>
-
-        <span
-          class="absolute top-3 right-3 w-2.5 h-2.5 bg-sb-green border-2 border-white rounded-full"
-        ></span>
-      </button>
-
-    </div>
-
-  </header>
-
-  <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-12 custom-scrollbar">
-    <div class="max-w-[1500px] mx-auto">
-
-      {% if messages %}
-      <div class="mb-6 space-y-3">
-        {% for message in messages %}
-        <div
-          class="rounded-2xl px-5 py-4 font-semibold shadow-sm border
-          {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700
-          {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700
-          {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700
-          {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}"
+        <header
+          class="min-h-20 lg:h-24 glass-blur flex items-center justify-between px-4 sm:px-6 lg:px-10 sticky top-0 z-30"
         >
-          {{ message }}
-        </div>
-        {% endfor %}
+          <div class="flex items-center gap-3 sm:gap-8">
+            <button
+              @click="mobileMenuOpen = true"
+              class="xl:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all"
+              type="button"
+            >
+              <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+
+            <button
+              @click="sidebarCollapsed = !sidebarCollapsed"
+              class="hidden xl:flex min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all items-center justify-center"
+              type="button"
+            >
+              <i
+                data-lucide="chevron-left"
+                class="w-5 h-5 transition-transform duration-500"
+                :class="sidebarCollapsed ? 'rotate-180' : ''"
+              ></i>
+            </button>
+
+            <div class="min-w-0">
+              <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-sb-navy tracking-tight truncate">
+                {% block page_title %}Network Insight{% endblock %}
+              </h2>
+
+              <div class="flex items-center gap-2 mt-1">
+                <span class="w-2 h-2 rounded-full bg-sb-green animate-pulse shrink-0"></span>
+
+                <p class="hidden sm:block text-[10px] text-gray-400 font-bold uppercase tracking-[0.15em] truncate">
+                  System Live: Global Procurement Active
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3 lg:gap-6 shrink-0">
+            <div
+              class="hidden lg:flex items-center bg-gray-100/50 border border-gray-200 rounded-2xl px-5 py-3 w-72 focus-within:ring-4 focus-within:ring-sb-navy/5 focus-within:bg-white transition-all group"
+            >
+              <i
+                data-lucide="command"
+                class="w-4 h-4 text-gray-400 group-focus-within:text-sb-navy transition-colors"
+              ></i>
+
+              <input
+                type="text"
+                placeholder="Search Console..."
+                class="bg-transparent border-none text-xs ml-3 focus:outline-none w-full font-semibold"
+              />
+            </div>
+
+            <button
+              class="lg:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all"
+              type="button"
+            >
+              <i data-lucide="search" class="w-5 h-5 text-sb-navy"></i>
+            </button>
+
+            <button
+              class="min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all relative group"
+              type="button"
+            >
+              <i
+                data-lucide="bell-ring"
+                class="w-5 h-5 text-gray-400 group-hover:text-sb-teal"
+              ></i>
+
+              <span
+                class="absolute top-3 right-3 w-2.5 h-2.5 bg-sb-green border-2 border-white rounded-full"
+              ></span>
+            </button>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-12 custom-scrollbar">
+          <div class="max-w-[1500px] mx-auto">
+
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+              {% for message in messages %}
+              <div
+                class="rounded-2xl px-5 py-4 font-semibold shadow-sm border
+                {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700
+                {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700
+                {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700
+                {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}"
+              >
+                {{ message }}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+
+          </div>
+        </main>
+
       </div>
-      {% endif %}
-
-      {% block content %}{% endblock %}
-
     </div>
-  </main>
 
-</div>
-</div>
+    <script>
+      lucide.createIcons();
+    </script>
 
-<script>
-  lucide.createIcons();
-</script>
-
-</body>
+  </body>
 </html>

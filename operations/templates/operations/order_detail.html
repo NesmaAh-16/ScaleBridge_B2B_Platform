@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block page_title %}Order Ledger: #SB-{{ order.id }}{% endblock %}
 
@@ -133,7 +134,9 @@
                 </div>
 
                 <div class="relative z-10">
-                    <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] mb-5 lg:mb-6">
+
+=======
+                  <h3 class="text-sb-green text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] mb-5 lg:mb-6">
                         Asset Intelligence
                     </h3>
 
@@ -161,7 +164,7 @@
                                 Total Payload Value
                             </p>
                             <p class="text-4xl sm:text-5xl lg:text-6xl font-black text-glow-green tracking-tighter italic">
-                                ${{ order.total_price }}
+                                ${{ order.total_price|floatformat:0|intcomma }}
                             </p>
                         </div>
                     </div>
