@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'operations',
+    'django.contrib.humanize',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 

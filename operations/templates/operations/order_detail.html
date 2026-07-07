@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block page_title %}Order Ledger: #SB-{{ order.id }}{% endblock %}
 
@@ -97,16 +98,32 @@
                     <h2 class="text-5xl font-black tracking-tighter mb-4">{{ order.buying_circle.product.name }}</h2>
                     <p class="text-white/40 font-medium max-w-xl text-lg leading-relaxed italic">{{ order.buying_circle.product.description|default:"No technical documentation provided." }}</p>
                     
-                    <div class="mt-12 pt-10 border-t border-white/10 flex justify-between items-end">
-                        <div>
-                            <p class="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-1">Quantity Reserved</p>
-                            <p class="text-3xl font-black italic">{{ order.total_quantity }} <span class="text-sb-green text-sm">{{ order.buying_circle.product.unit }}</span></p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-sb-green text-[10px] font-black uppercase tracking-widest mb-1">Total Payload Value</p>
-                            <p class="text-6xl font-black text-glow-green tracking-tighter italic">${{ order.total_price }}</p>
-                        </div>
-                    </div>
+                    <div class="mt-12 pt-10 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-8 sm:items-end">
+    
+    <div>
+        <p class="text-white/30 text-[10px] font-bold uppercase tracking-widest mb-1">
+            Quantity Reserved
+        </p>
+
+        <p class="text-2xl sm:text-3xl font-black italic">
+            {{ order.total_quantity }}
+            <span class="text-sb-green text-sm">
+                {{ order.buying_circle.product.unit }}
+            </span>
+        </p>
+    </div>
+
+    <div class="text-left sm:text-right max-w-full">
+        <p class="text-sb-green text-[10px] font-black uppercase tracking-widest mb-1">
+            Total Payload Value
+        </p>
+
+        <p class="text-[2rem] sm:text-5xl lg:text-6xl font-black text-glow-green tracking-tight italic break-words">
+            ${{ order.total_price|floatformat:0|intcomma }}
+        </p>
+    </div>
+
+</div>
                 </div>
             </div>
         </div>
