@@ -1,512 +1,96 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScaleBridge | Vanguard Console</title>
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-      rel="stylesheet"
-    />
-
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <title>ScaleBridge | Business Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: ['"Inter"', "sans-serif"] },
-            colors: {
-              "sb-navy": "rgb(10, 54, 88)",
-              "sb-green": "rgb(144, 191, 73)",
-              "sb-teal": "rgb(38, 102, 117)",
-              "sb-neutral": "rgb(248, 250, 252)",
-            },
-            boxShadow: {
-              "soft-xl": "0 20px 25px -5px rgba(10, 54, 88, 0.05), 0 8px 10px -6px rgba(10, 54, 88, 0.03)",
-              glow: "0 0 20px rgba(144, 191, 73, 0.3)",
-            },
+            colors: { "sb-navy": "#0F172A", "sb-green": "#84CC16", "sb-slate": "#F8FAFC" }
           },
         },
       };
     </script>
-
     <style>
-      .glass-stroke {
-        box-shadow:
-          inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
-          0 10px 30px -10px rgba(10, 54, 88, 0.1);
-      }
-
-      .text-glow-green {
-        text-shadow: 0 0 15px rgba(144, 191, 73, 0.5);
-      }
-
-      .grainy-overlay {
-        background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
-        opacity: 0.03;
-      }
-
-      @keyframes orbit {
-        from {
-          transform: rotate(0deg) translateX(8px) rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg) translateX(8px) rotate(-360deg);
-        }
-      }
-
-      .orbit-dot {
-        animation: orbit 4s linear infinite;
-      }
-
-      [x-cloak] {
-        display: none !important;
-      }
-
-      .sidebar-vanguard {
-        background: linear-gradient(
-          190deg,
-          #0a3658 0%,
-          #1a4a6e 40%,
-          #266675 100%
-        );
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .nav-item-active {
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-        border-left: 3px solid rgb(144, 191, 73);
-      }
-
-      .bg-grid-subtle {
-        background-image: radial-gradient(
-          rgba(10, 54, 88, 0.05) 1px,
-          transparent 0
-        );
-        background-size: 30px 30px;
-      }
-
-      .glass-blur {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(10, 54, 88, 0.05);
-      }
-
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
+      [x-cloak] { display: none !important; }
+      .sidebar-bg { background: #0F172A; }
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
-  </head>
+</head>
 
-  <body
-    class="bg-sb-neutral font-sans text-sb-navy antialiased bg-grid-subtle text-sm sm:text-base"
-    x-data="{ sidebarCollapsed: false, mobileMenuOpen: false }"
-  >
+<body class="bg-sb-slate font-sans text-slate-900 antialiased" x-data="{ sidebarCollapsed: false, mobileMenuOpen: false }">
     <div class="flex h-screen overflow-hidden">
+      
+      <!-- 1. MOBILE SIDEBAR (Drawer) -->
+      <div x-show="mobileMenuOpen" @click="mobileMenuOpen = false" x-cloak class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm xl:hidden"></div>
 
-      <!-- MOBILE / TABLET OVERLAY -->
-      <div
-        x-show="mobileMenuOpen"
-        x-cloak
-        @click="mobileMenuOpen = false"
-        x-transition.opacity
-        class="fixed inset-0 z-40 bg-sb-navy/60 backdrop-blur-sm xl:hidden"
-      ></div>
-
-      <!-- MOBILE / TABLET NAVIGATION -->
-      <aside
-        x-show="mobileMenuOpen"
-        x-cloak
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="-translate-x-full"
-        x-transition:enter-end="translate-x-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="translate-x-0"
-        x-transition:leave-end="-translate-x-full"
-        class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] sidebar-vanguard text-white xl:hidden flex flex-col"
-      >
-        <div class="h-20 flex items-center justify-between px-5 border-b border-white/10">
-          <div class="flex items-center gap-3 min-w-0">
-            <img
-              src="{% static 'images/logo.png' %}"
-              alt="ScaleBridge"
-              class="w-10 h-10 rounded-xl bg-white p-1.5 shrink-0"
-            />
-            <div class="min-w-0">
-              <h2 class="font-black text-lg leading-tight truncate">ScaleBridge</h2>
-              <p class="text-[9px] text-sb-green font-black uppercase tracking-widest">
-                Financial OS
-              </p>
+      <aside x-show="mobileMenuOpen" x-cloak 
+             x-transition:enter="transition ease-in-out duration-300 transform" 
+             x-transition:enter-start="-translate-x-full" 
+             x-transition:enter-end="translate-x-0" 
+             class="fixed inset-y-0 left-0 z-50 w-72 sidebar-bg text-white xl:hidden flex flex-col shadow-2xl">
+        <div class="p-6 flex items-center justify-between border-b border-white/5">
+            <div class="bg-white p-1.5 rounded-full ring-2 ring-sb-green/20">
+                <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
             </div>
-          </div>
-
-          <button
-            @click="mobileMenuOpen = false"
-            class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-all"
-            type="button"
-          >
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+            <button @click="mobileMenuOpen = false" class="p-2 text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
         </div>
-
-        <nav class="flex-1 px-4 py-5 space-y-2 overflow-y-auto no-scrollbar">
-          {% if "ADMIN" in user.role.upper %}
-            <a href="/accounts/dashboard/admin/"
-               @click="mobileMenuOpen = false"
-               class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white bg-white/5 border border-white/10">
-              <i data-lucide="shield-check" class="w-5 h-5 text-sb-green"></i>
-              <span class="font-bold text-sm">Control Center</span>
-            </a>
-
-            <a href="/admin/"
-               target="_blank"
-               @click="mobileMenuOpen = false"
-               class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/60 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="database" class="w-5 h-5"></i>
-              <span class="font-semibold text-sm">Django Admin</span>
-            </a>
-          {% endif %}
-
-          {% if "ADMIN" not in user.role.upper %}
-            <a href="{% url 'operations:product_list' %}"
-               @click="mobileMenuOpen = false"
-               class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="layout-grid" class="w-5 h-5 text-sb-green"></i>
-              <span class="font-bold text-sm">My Catalog</span>
-            </a>
-
-            <a href="{% url 'operations:marketplace' %}"
-              @click="mobileMenuOpen = false"
-              class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-              <span class="font-semibold text-sm">Marketplace</span>
-            </a>
-
-            <a href="{% url 'operations:buying_circle_list' %}"
-              @click="mobileMenuOpen = false"
-              class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-              <span class="font-semibold text-sm">Buying Circles</span>
-            </a>
-
-            <a href="{% url 'operations:order_ledger' %}"
-              @click="mobileMenuOpen = false"
-              class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="briefcase-business" class="w-5 h-5"></i>
-              <span class="font-semibold text-sm">Active Ledger</span>
-            </a>
-
-            <a href="{% url 'accounts:business_profile' %}"
-              @click="mobileMenuOpen = false"
-              class="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/75 hover:bg-white/5 hover:text-white transition-all">
-              <i data-lucide="briefcase" class="w-5 h-5"></i>
-              <span class="font-semibold text-sm">Business Profile</span>
-            </a>
-          {% endif %}
-        </nav>
-
-        <div class="p-4 border-t border-white/10">
-          <form action="{% url 'accounts:logout' %}" method="post">
-            {% csrf_token %}
-            <button
-              type="submit"
-              class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-red-300 hover:bg-red-500/10 transition-all font-bold text-sm"
-            >
-              <i data-lucide="log-out" class="w-5 h-5"></i>
-              Logout
-            </button>
-          </form>
-        </div>
+        {% include "includes/sidebar_nav.html" %}
       </aside>
 
-      <!-- DESKTOP SIDEBAR -->
-      <aside
-        :class="sidebarCollapsed ? 'w-24' : 'w-80'"
-        class="sidebar-vanguard hidden xl:flex flex-col text-white transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] relative z-40"
-        x-data="{ userMenuOpen: false }"
-      >
-        <!-- Logo Area -->
-        <div class="h-28 flex items-center px-8 mb-4">
-          <div
-            class="bg-white p-2.5 rounded-2xl shadow-2xl shrink-0 group transition-all hover:scale-110 hover:rotate-3 ring-4 ring-white/5"
-          >
-            <img
-              src="{% static 'images/logo.png' %}"
-              alt="SB"
-              class="w-10 h-10 object-contain"
-            />
-          </div>
-          <div
-            x-show="!sidebarCollapsed"
-            x-transition.opacity.duration.300ms
-            class="ml-5 overflow-hidden"
-          >
-            <h1 class="text-2xl font-black tracking-tighter leading-none">
-              ScaleBridge
-            </h1>
-            <span
-              class="text-[10px] font-bold text-sb-green uppercase tracking-[0.3em] opacity-80"
-              >Financial OS</span
-            >
-          </div>
+      <!-- 2. DESKTOP SIDEBAR -->
+      <aside :class="sidebarCollapsed ? 'w-20' : 'w-72'" class="sidebar-bg hidden xl:flex flex-col text-white transition-all duration-300 relative z-30 overflow-y-auto custom-scrollbar border-r border-white/5">
+        <div class="p-6">
+            <a href="{% url 'accounts:dashboard' %}" class="flex items-center gap-3 group">
+                <div class="bg-white p-1.5 rounded-full shrink-0 transition-transform group-hover:scale-110 shadow-xl ring-2 ring-sb-green/10">
+                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+                </div>
+                <span x-show="!sidebarCollapsed" class="font-extrabold text-xl tracking-tight transition-colors group-hover:text-sb-green">ScaleBridge</span>
+            </a>
         </div>
-
-        <!-- Workspace Switcher -->
-        <div class="px-6 mb-10" x-show="!sidebarCollapsed">
-          <button
-            class="w-full flex items-center justify-between p-4 rounded-[1.25rem] bg-white/5 border border-white/10 hover:bg-white/10 transition-all group relative overflow-hidden"
-            type="button"
-          >
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-sb-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-            ></div>
-            <div class="flex items-center gap-3 relative z-10">
-              <div
-                class="w-2.5 h-2.5 rounded-full bg-sb-green shadow-[0_0_10px_rgba(144,191,73,0.8)] animate-pulse"
-              ></div>
-              <span
-                class="text-[11px] font-black uppercase tracking-widest text-white/90"
-                >Main Network</span
-              >
-            </div>
-            <i
-              data-lucide="chevrons-up-down"
-              class="w-4 h-4 text-white/20 group-hover:text-sb-green transition-colors"
-            ></i>
-          </button>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto no-scrollbar">
-          {% if "ADMIN" in user.role.upper %}
-            <a href="/accounts/dashboard/admin/" class="nav-item-active flex items-center gap-4 px-5 py-4 rounded-2xl text-white transition-all group">
-              <i data-lucide="shield-check" class="w-5 h-5 text-sb-green"></i>
-              <span x-show="!sidebarCollapsed" class="font-bold text-sm">Control Center</span>
-            </a>
-
-            <a href="/admin/" target="_blank" class="flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all group">
-              <i data-lucide="database" class="w-5 h-5"></i>
-              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Django Admin</span>
-            </a>
-          {% endif %}
-
-          {% if "ADMIN" not in user.role.upper %}
-            <a href="{% url 'operations:product_list' %}" class="{% if 'catalog' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
-              <i data-lucide="layout-grid" class="w-5 h-5 text-sb-green"></i>
-              <span x-show="!sidebarCollapsed" class="font-bold text-sm">My Catalog</span>
-            </a>
-
-            <a href="{% url 'operations:marketplace' %}" class="{% if 'marketplace' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
-              <i data-lucide="shopping-bag" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Marketplace</span>
-            </a>
-
-            <a href="{% url 'operations:buying_circle_list' %}"
-               class="{% if 'circles' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
-              <i data-lucide="refresh-cw" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-700"></i>
-              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Buying Circles</span>
-              <span x-show="!sidebarCollapsed" class="ml-auto bg-sb-green text-sb-navy text-[10px] font-black px-2.5 py-1 rounded-lg border border-white/10">
-                {{ buying_circles.count|default:"0" }}
-              </span>
-            </a>
-
-            <a href="{% url 'operations:order_ledger' %}"
-               class="{% if 'ledger' in request.path or 'orders' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
-              <i data-lucide="briefcase-business" class="w-5 h-5"></i>
-              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Active Ledger</span>
-            </a>
-
-            <a href="{% url 'accounts:business_profile' %}"
-               class="{% if 'business/profile' in request.path %}nav-item-active text-white{% else %}text-white/40 hover:bg-white/5 hover:text-white{% endif %} flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group">
-              <i data-lucide="briefcase" class="w-5 h-5"></i>
-              <span x-show="!sidebarCollapsed" class="font-semibold text-sm">Business Profile</span>
-            </a>
-          {% endif %}
-        </nav>
-
-        <!-- Account Management -->
-        <div class="p-6 mt-auto relative">
-          <div
-            x-show="userMenuOpen"
-            @click.away="userMenuOpen = false"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-            class="absolute bottom-full left-6 right-6 mb-4 bg-sb-navy/90 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] shadow-2xl p-3 z-50"
-            x-cloak
-          >
-            <div class="space-y-1">
-              {% if not user.is_superuser and user.role != 'Admin' %}
-                <a
-                  href="{% url 'accounts:business_profile' %}"
-                  class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-xs font-bold text-white/70 hover:text-white transition-all"
-                >
-                  <i data-lucide="briefcase" class="w-4 h-4"></i> Business Profile
-                </a>
-              {% endif %}
-
-              <div class="my-2 border-t border-white/5"></div>
-
-              <form action="{% url 'accounts:logout' %}" method="post">
-                {% csrf_token %}
-                <button
-                  type="submit"
-                  class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-xs font-bold text-red-400 transition-all group"
-                >
-                  <i data-lucide="log-out" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                  Confirm Logout
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <div
-            @click="userMenuOpen = !userMenuOpen"
-            class="flex items-center gap-4 p-4 rounded-[1.5rem] bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 cursor-pointer transition-all group relative overflow-hidden"
-          >
-            <div class="w-12 h-12 rounded-2xl bg-sb-green flex items-center justify-center text-sb-navy font-black shadow-lg shadow-sb-green/20 shrink-0 border-2 border-white/10 group-hover:scale-105 transition-transform">
-              {{ user.email|slice:":1"|upper }}
-            </div>
-
-            <div x-show="!sidebarCollapsed" class="overflow-hidden flex-1">
-              <p class="text-xs font-black text-white truncate">
-                {{ user.email }}
-              </p>
-              <p class="text-[9px] text-sb-green/80 font-black uppercase tracking-widest">
-                {{ user.get_role_display }}
-              </p>
-            </div>
-
-            <i data-lucide="more-vertical" x-show="!sidebarCollapsed" class="w-4 h-4 text-white/20 group-hover:text-white transition-colors"></i>
-          </div>
-        </div>
+        {% include "includes/sidebar_nav.html" %}
       </aside>
 
-      <!-- MAIN WINDOW -->
+      <!-- 3. MAIN CONTENT AREA -->
       <div class="flex-1 flex flex-col min-w-0">
-
-        <header
-          class="min-h-20 lg:h-24 glass-blur flex items-center justify-between px-4 sm:px-6 lg:px-10 sticky top-0 z-30"
-        >
-          <div class="flex items-center gap-3 sm:gap-8">
-            <button
-              @click="mobileMenuOpen = true"
-              class="xl:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all"
-              type="button"
-            >
-              <i data-lucide="menu" class="w-5 h-5"></i>
-            </button>
-
-            <button
-              @click="sidebarCollapsed = !sidebarCollapsed"
-              class="hidden xl:flex min-w-11 min-h-11 p-3 bg-white border border-gray-100 shadow-sm rounded-2xl text-sb-navy hover:shadow-md transition-all items-center justify-center"
-              type="button"
-            >
-              <i
-                data-lucide="chevron-left"
-                class="w-5 h-5 transition-transform duration-500"
-                :class="sidebarCollapsed ? 'rotate-180' : ''"
-              ></i>
-            </button>
-
-            <div class="min-w-0">
-              <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-sb-navy tracking-tight truncate">
-                {% block page_title %}Network Insight{% endblock %}
-              </h2>
-
-              <div class="flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 rounded-full bg-sb-green animate-pulse shrink-0"></span>
-
-                <p class="hidden sm:block text-[10px] text-gray-400 font-bold uppercase tracking-[0.15em] truncate">
-                  System Live: Global Procurement Active
-                </p>
-              </div>
-            </div>
+        <header class="h-20 bg-white border-b flex items-center justify-between px-6 sticky top-0 z-20">
+          <div class="flex items-center gap-4">
+            <button @click="mobileMenuOpen = true" class="xl:hidden p-2.5 bg-slate-50 text-slate-600 rounded-xl border border-slate-100"><i data-lucide="menu"></i></button>
+            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">{% block page_title %}Dashboard{% endblock %}</h2>
           </div>
-
-          <div class="flex items-center gap-2 sm:gap-3 lg:gap-6 shrink-0">
-            <div
-              class="hidden lg:flex items-center bg-gray-100/50 border border-gray-200 rounded-2xl px-5 py-3 w-72 focus-within:ring-4 focus-within:ring-sb-navy/5 focus-within:bg-white transition-all group"
-            >
-              <i
-                data-lucide="command"
-                class="w-4 h-4 text-gray-400 group-focus-within:text-sb-navy transition-colors"
-              ></i>
-
-              <input
-                type="text"
-                placeholder="Search Console..."
-                class="bg-transparent border-none text-xs ml-3 focus:outline-none w-full font-semibold"
-              />
-            </div>
-
-            <button
-              class="lg:hidden min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all"
-              type="button"
-            >
-              <i data-lucide="search" class="w-5 h-5 text-sb-navy"></i>
-            </button>
-
-            <button
-              class="min-w-11 min-h-11 p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all relative group"
-              type="button"
-            >
-              <i
-                data-lucide="bell-ring"
-                class="w-5 h-5 text-gray-400 group-hover:text-sb-teal"
-              ></i>
-
-              <span
-                class="absolute top-3 right-3 w-2.5 h-2.5 bg-sb-green border-2 border-white rounded-full"
-              ></span>
-            </button>
+          
+          <div class="flex items-center gap-4">
+              <div class="hidden md:flex bg-slate-100 px-4 py-2 rounded-xl items-center gap-2">
+                  <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                  <form action="{% url 'operations:marketplace' %}" method="GET">
+                      <input type="text" name="q" placeholder="Search items..." class="bg-transparent text-sm outline-none w-48 font-medium text-slate-600">
+                  </form>
+              </div>
+              <button class="relative p-2.5 text-slate-400 hover:text-sb-navy bg-white border border-slate-100 rounded-xl transition-all">
+                  <i data-lucide="bell" class="w-5 h-5"></i>
+                  {% if unread_count > 0 %}<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>{% endif %}
+              </button>
           </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-12 custom-scrollbar">
-          <div class="max-w-[1500px] mx-auto">
-
-            {% if messages %}
-            <div class="mb-6 space-y-3">
-              {% for message in messages %}
-              <div
-                class="rounded-2xl px-5 py-4 font-semibold shadow-sm border
-                {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700
-                {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700
-                {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700
-                {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}"
-              >
-                {{ message }}
-              </div>
-              {% endfor %}
-            </div>
-            {% endif %}
-
+        <main class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
+            {% if messages %}{% for message in messages %}
+                <div class="mb-4 p-4 rounded-xl text-sm font-bold shadow-sm {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}{% endif %}
             {% block content %}{% endblock %}
-
-          </div>
         </main>
-
       </div>
     </div>
-
-    <script>
-      lucide.createIcons();
-    </script>
-
-  </body>
+    <script>lucide.createIcons();</script>
+</body>
 </html>

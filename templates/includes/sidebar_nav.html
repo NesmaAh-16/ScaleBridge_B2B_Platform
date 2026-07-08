@@ -1,0 +1,52 @@
+<nav class="flex-1 px-4 space-y-2 mt-4">
+  {% with url_name=request.resolver_match.url_name %}
+  
+  {% if user.role == 'Admin' %}
+    <a href="/accounts/dashboard/admin/" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'admin' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 {% if 'admin' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Control Center</span>
+    </a>
+  {% else %}
+    <a href="{% url 'operations:product_list' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'product' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="package" class="w-5 h-5 {% if 'product' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Inventory</span>
+    </a>
+
+    <a href="{% url 'operations:marketplace' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'marketplace' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="shopping-cart" class="w-5 h-5 {% if 'marketplace' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Marketplace</span>
+    </a>
+
+    <a href="{% url 'operations:buying_circle_list' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'circle' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="users" class="w-5 h-5 {% if 'circle' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Buying Circles</span>
+    </a>
+
+    <a href="{% url 'operations:order_ledger' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'ledger' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="file-text" class="w-5 h-5 {% if 'ledger' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Order History</span>
+    </a>
+
+    <a href="{% url 'accounts:analytics' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'analytics' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 {% if 'analytics' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Savings Analytics</span>
+    </a>
+
+    <a href="{% url 'accounts:business_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all group {% if 'profile' in url_name %} bg-white/10 border-l-4 border-sb-green text-white {% else %} text-white/40 hover:bg-white/5 hover:text-white {% endif %}">
+        <i data-lucide="building-2" class="w-5 h-5 {% if 'profile' in url_name %}text-sb-green{% endif %}"></i>
+        <span x-show="!sidebarCollapsed" class="font-bold text-sm">Profile</span>
+    </a>
+  {% endif %}
+  {% endwith %}
+</nav>
+
+<!-- Mobile Logout (Hidden on Desktop Sidebar via Sidebar-Collapsed logic) -->
+<div class="p-6 border-t border-white/5 mt-auto">
+    <form action="{% url 'accounts:logout' %}" method="post">
+        {% csrf_token %}
+        <button class="flex items-center gap-4 text-red-400 font-bold text-sm w-full hover:text-red-300 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            <span x-show="!sidebarCollapsed">Logout</span>
+        </button>
+    </form>
+</div>

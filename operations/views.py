@@ -12,7 +12,7 @@ from .forms import ProductForm, BuyingCircleForm, JoinCircleForm, ReviewForm
 from django.db import transaction 
 from .models import Notification 
 from django.db.models import Q
-
+from django.http import JsonResponse
 
 # ---------------------------------------------------------------------------
 # Product CRUD
@@ -423,19 +423,19 @@ def update_order_status(request, order_id):
             if action == 'accept' and order.status == 'Pending':
                 order.status = 'Accepted'
                 status_changed = True
-                success_message = f"Order #SB-{order.id} has been accepted. Dispatch protocol initiated."
+                success_message = f"Order #{order.id} has been accepted. Processing started."
 
             # 2. LOGIC FOR 'START' (Dispatch)
             elif action == 'start' and order.status == 'Accepted':
                 order.status = 'InProgress'
                 status_changed = True
-                success_message = f"Order #SB-{order.id} is now in transit/preparation."
+                success_message = f"Order #{order.id} is now being prepared for shipping."
 
             # 3. LOGIC FOR 'COMPLETE' (Finalize)
             elif action == 'complete' and order.status == 'InProgress':
                 order.status = 'Completed'
                 status_changed = True
-                success_message = f"Order #SB-{order.id} finalized. Success loop triggered."
+                success_message = f"Order #{order.id} is complete."
                 
                 # Archiving the circle
                 if order.buying_circle:
@@ -452,7 +452,7 @@ def update_order_status(request, order_id):
                         Notification.objects.create(
                             user=member.business.user,
                             title="Package Arrived!",
-                            message=f"Order for {circle.product.name} is complete. Please leave a review!"
+                            message = f"Order for {circle.product.name} is complete. Please leave a review!"
                         )
 
             # 4. LOGIC FOR 'CANCEL'
@@ -547,43 +547,39 @@ def order_detail(request, order_id):
     })
 
 @login_required
-@role_required('SmallBusiness', 'EnterpriseBuyer')
+@transaction.atomic # Ensure database integrity
 def leave_review(request, order_id):
-    """
-    Trust Engine: Allows the buyer to rate the supplier after completion.
-    """
     order = get_object_or_404(Order, id=order_id)
     business = Business.objects.filter(user=request.user).first()
 
-    # Logic Guards
-    if order.buyer_business != business:
-        messages.error(request, "Only the buyer can submit a review.")
-        return redirect('operations:order_detail', order_id=order.id)
-
+    # REQ: Validate order status is 'Completed'
     if order.status != 'Completed':
-        messages.error(request, "Review unlocks once the order is Completed.")
+        messages.error(request, "Review portal opens only after order completion.")
         return redirect('operations:order_detail', order_id=order.id)
 
+    # REQ: Ensure 1:1 relationship (prevent duplicates)
     if hasattr(order, 'review'):
-        messages.warning(request, "Feedback already submitted for this ledger entry.")
+        messages.warning(request, "This transaction has already been rated.")
         return redirect('operations:order_detail', order_id=order.id)
 
     if request.method == 'POST':
-        form = ReviewForm(request.POST) # Make sure ReviewForm is in your forms.py!
+        form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
             review.order = order
             review.from_business = business
             review.to_business = order.supplier_business
             review.save()
-            messages.success(request, "Network Trust Updated: Review Logged.")
+
+            # REQ: Trigger update to average_rating column
+            order.supplier_business.update_trust_score()
+
+            messages.success(request, "Trust Score Updated. Feedback Committed.")
             return redirect('operations:order_detail', order_id=order.id)
     else:
         form = ReviewForm()
 
     return render(request, 'operations/review_form.html', {'form': form, 'order': order})
-
-from django.http import JsonResponse
 
 @login_required
 def notification_unread_count(request):
@@ -598,3 +594,34 @@ def order_ledger_view(request):
     business = Business.objects.filter(user=request.user).first()
     orders = Order.objects.filter(Q(buyer_business=business) | Q(supplier_business=business))
     return render(request, 'operations/order_ledger.html', {'orders': orders, 'business': business})
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa 
+
+@login_required
+def order_pdf_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    business = Business.objects.filter(user=request.user).first()
+
+    # SECURITY: Only Buyer or Supplier can generate this PDF
+    if business not in [order.buyer_business, order.supplier_business]:
+        return HttpResponse("Access Denied", status=401)
+
+    template_path = 'operations/order_pdf_template.html'
+    context = {'order': order, 'business': business}
+    
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Invoice_SB_{order.id}.pdf"'
+    
+    # Render the template
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # Run the PDF conversion
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+       return HttpResponse('Error generating PDF', status=500)
+    return response

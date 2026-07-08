@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- PDF Generation Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Add the ID here so the PDF script can find it -->
+<div id="analytics-report" class="space-y-8 animate-in fade-in duration-700 p-4">
+    
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-black text-sb-navy tracking-tight">Procurement Analytics</h1>
+            <p class="text-slate-400 font-medium">Fiscal Year 2026 ROI Breakdown</p>
+        </div>
+        <button onclick="downloadPDF(event)" class="flex items-center gap-2 px-6 py-3 bg-sb-navy text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-sb-green transition-colors shadow-glow">
+            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+            Export ROI Report (PDF)
+        </button>
+    </div>
+
+    <!-- Summary Widgets: Clean & Data-Focused -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Total Savings -->
+    <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.05)] relative overflow-hidden group">
+        <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 transition-transform">
+            <i data-lucide="trending-up" class="w-32 h-32 text-sb-green"></i>
+        </div>
+        <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Capital Saved</p>
+        <h2 class="text-4xl font-black text-sb-navy tracking-tighter">${{ total_savings|floatformat:0 }}</h2>
+        <div class="mt-4 inline-flex items-center gap-2 px-2 py-1 bg-sb-green/10 rounded-lg text-sb-green text-[10px] font-black uppercase">
+            Efficiency: +{{ savings_percentage }}%
+        </div>
+    </div>
+
+    <!-- Platform Spend -->
+    <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
+        <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">ScaleBridge Spend</p>
+        <h2 class="text-4xl font-black text-sb-navy tracking-tighter">${{ actual_spend|floatformat:0 }}</h2>
+        <p class="mt-4 text-[10px] font-bold text-slate-300 uppercase">Verified Procurement</p>
+    </div>
+
+    <!-- Market Spend -->
+    <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
+        <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Projected Market Cost</p>
+        <h2 class="text-4xl font-black text-slate-300 tracking-tighter line-through decoration-red-400/30">${{ projected_market_spend|floatformat:0 }}</h2>
+        <p class="mt-4 text-[10px] font-bold text-red-400/50 uppercase italic">Potential Loss Avoided</p>
+    </div>
+</div>
+
+    <!-- Visualization Chart -->
+    <div class="bg-white rounded-[2.5rem] p-8 lg:p-10 border border-slate-100 shadow-sm">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-lg font-black text-sb-navy uppercase tracking-wider">Spend vs. Market Projection</h3>
+        </div>
+        <div class="h-[350px]">
+            <canvas id="roiChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js and Data -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- These tags safely pass data from Python to JS without red errors -->
+{{ chart_labels|json_script:"labels-data" }}
+{{ chart_spend|json_script:"spend-data" }}
+
+<script>
+    // 1. Get the data from the json_script tags
+    const chartLabels = JSON.parse(document.getElementById('labels-data').textContent);
+    const chartSpend = JSON.parse(document.getElementById('spend-data').textContent);
+
+    // 2. Initialize Chart
+    const ctx = document.getElementById('roiChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels, // No red errors now!
+            datasets: [
+                {
+                    label: 'Platform Spend',
+                    data: chartSpend,
+                    backgroundColor: '#0f172a',
+                    borderRadius: 10,
+                },
+                {
+                    label: 'Market Spend',
+                    data: chartSpend.map(val => val * 1.25),
+                    backgroundColor: '#e2e8f0',
+                    borderRadius: 10,
+                }
+            ]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 3. PDF Export Function
+    async function downloadPDF(event) {
+        const { jsPDF } = window.jspdf;
+        const reportElement = document.getElementById('analytics-report');
+        const button = event.currentTarget;
+
+        const originalText = button.innerHTML;
+        button.innerHTML = "Generating...";
+        button.disabled = true;
+
+        try {
+            const canvas = await html2canvas(reportElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#f8fafc'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save("ScaleBridge_ROI_Report.pdf");
+            
+        } catch (error) {
+            console.error("PDF Error:", error);
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+</script>
+{% endblock %}
