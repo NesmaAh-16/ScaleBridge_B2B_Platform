@@ -25,7 +25,31 @@
       .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
+<script>
+    function updateNotificationBadge() {
+        fetch('/operations/notifications/unread-count/') // Adjust URL to match your urls.py
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-badge');
+                if (data.unread_count > 0) {
+                    if (!badge) {
+                        // Create the dot if it doesn't exist
+                        const dot = document.createElement('span');
+                        dot.id = 'notification-badge';
+                        dot.className = "absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse";
+                        document.getElementById('notification-btn').appendChild(dot);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+    }
 
+    // Check every 30 seconds
+    setInterval(updateNotificationBadge, 30000);
+    // Initial check
+    updateNotificationBadge();
+</script>
 <body class="bg-sb-slate font-sans text-slate-900 antialiased" x-data="{ sidebarCollapsed: false, mobileMenuOpen: false }">
     <div class="flex h-screen overflow-hidden">
       
@@ -74,10 +98,58 @@
                       <input type="text" name="q" placeholder="Search items..." class="bg-transparent text-sm outline-none w-48 font-medium text-slate-600">
                   </form>
               </div>
-              <button class="relative p-2.5 text-slate-400 hover:text-sb-navy bg-white border border-slate-100 rounded-xl transition-all">
-                  <i data-lucide="bell" class="w-5 h-5"></i>
-                  {% if unread_count > 0 %}<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>{% endif %}
-              </button>
+              <!-- Notification Dropdown Container -->
+<div class="relative" x-data="{ open: false }">
+    <!-- The Button -->
+    <button id="notification-btn" 
+            @click="open = !open" 
+            @click.outside="open = false"
+            class="relative p-2.5 text-slate-400 hover:text-sb-navy bg-white border border-slate-100 rounded-xl transition-all">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        {% if unread_count > 0 %}
+            <span id="notification-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+        {% endif %}
+    </button>
+
+    <!-- The Dropdown Menu -->
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden" 
+         x-cloak>
+        
+        <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+            <h3 class="font-bold text-slate-800 text-sm">Notifications</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 bg-sb-green/10 text-sb-green rounded-full">
+                {{ unread_count }} New
+            </span>
+        </div>
+
+        <div class="max-h-96 overflow-y-auto custom-scrollbar">
+            {% for n in notifications %}
+                <div class="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors {% if not n.is_read %}bg-blue-50/20{% endif %}">
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs font-bold text-slate-800">{{ n.title }}</p>
+                        <span class="text-[9px] text-slate-400">{{ n.created_at|timesince }} ago</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ n.message }}</p>
+                </div>
+            {% empty %}
+                <div class="p-8 text-center">
+                    <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="bell-off" class="w-6 h-6 text-slate-300"></i>
+                    </div>
+                    <p class="text-xs text-slate-400 font-medium">No notifications yet</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <a href="#" class="block p-3 text-center text-[11px] font-bold text-sb-green hover:bg-slate-50 border-t border-slate-50 transition-colors">
+            Mark all as read
+        </a>
+    </div>
+</div>
           </div>
         </header>
 

@@ -625,3 +625,4 @@ def order_pdf_view(request, order_id):
     if pisa_status.err:
        return HttpResponse('Error generating PDF', status=500)
     return response
+
