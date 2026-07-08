@@ -1,5 +1,4 @@
-{% extends "base.html" %} {% block title %}Buying Circles{% endblock %} {% block
-page_title %}Buying Circles{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Buying Circles{% endblock %} {% block page_title %}Buying Circles{% endblock %} {% block content %}
 <div class="space-y-6 lg:space-y-8">
   <!-- Page Header -->
   <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
@@ -90,9 +89,8 @@ page_title %}Buying Circles{% endblock %} {% block content %}
           class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"
         >
           <span class="text-sm font-black text-sb-navy">
-            {{ circle.current_quantity|floatformat:0 }} / {{
-            circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}
-          </span>
+      {{ circle.current_quantity|floatformat:0 }} / {{ circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}
+    </span>
 
           {% if circle.deadline %}
           <span class="text-[10px] font-bold text-slate-400">
@@ -120,17 +118,25 @@ page_title %}Buying Circles{% endblock %} {% block content %}
         {% endif %}
       </div>
 
-      <!-- Action -->
+      
+    <!-- Action -->
       <div class="mt-7 pt-5 border-t border-slate-100">
-        <a
-          href="{% url 'operations:circle_detail' circle.pk %}"
-          class="min-h-12 flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all {% if not is_enterprise and circle.status == 'Open' and circle.pk not in member_circle_ids %} bg-sb-navy text-white hover:bg-sb-green hover:shadow-glow {% else %} bg-sb-neutral text-sb-navy hover:bg-gray-100 {% endif %}"
-        >
+        <a href="{% url 'operations:circle_detail' circle.pk %}"
+           class="min-h-12 flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all 
+           {% if not is_enterprise and circle.status == 'Open' and circle.pk not in member_circle_ids %} 
+             bg-sb-navy text-white hover:bg-sb-green hover:shadow-glow 
+           {% else %} 
+             bg-sb-neutral text-sb-navy hover:bg-gray-100 
+           {% endif %}">
+          
           {% if is_enterprise %}
-          <i data-lucide="eye" class="w-4 h-4"></i> Show Details {% elif
-          circle.status == 'Open' and circle.pk not in member_circle_ids %}
-          <i data-lucide="user-plus" class="w-4 h-4"></i> Join Circle {% else %}
-          <i data-lucide="eye" class="w-4 h-4"></i> View Details {% endif %}
+            <i data-lucide="eye" class="w-4 h-4"></i> Show Details
+          {% elif circle.status == 'Open' and circle.pk not in member_circle_ids %}
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Join Circle
+          {% else %}
+            <i data-lucide="eye" class="w-4 h-4"></i> View Details
+          {% endif %}
+          
         </a>
       </div>
     </div>

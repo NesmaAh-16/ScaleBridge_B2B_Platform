@@ -87,88 +87,87 @@ def business_dashboard_view(request):
         'buying_circles': buying_circles})
 
 
+from .forms import BusinessProfileForm 
+from .forms import BusinessProfileForm # We will create this below
+
 @login_required
 def business_profile(request):
+    """
+    Unified Business Identity Management.
+    Handles branding assets (logos) and core business metadata.
+    """
     business = Business.objects.filter(user=request.user).first()
 
     if request.method == 'POST':
-        # Use escape() to turn <script> into &lt;script&gt;
-        business_name = escape(request.POST.get('business_name', '').strip())
-        location = escape(request.POST.get('location', '').strip())
-        business_type = request.POST.get('business_type', '').strip()
-        description = escape(request.POST.get('description', '').strip())
-
-        if not business_name or not location or not business_type:
-            messages.error(request, 'Please fill in all required fields.')
+        # request.FILES is MANDATORY for logo uploads
+        form = BusinessProfileForm(request.POST, request.FILES, instance=business)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.user = request.user
+            profile.save()
+            messages.success(request, 'Business Identity updated successfully.')
             return redirect('accounts:business_profile')
-
-        if business:
-            business.business_name = business_name
-            business.location = location
-            business.business_type = business_type
-            business.description = description
-            business.save()
-            messages.success(request, 'Business profile updated successfully.')
         else:
-            Business.objects.create(
-                user=request.user,
-                business_name=business_name,
-                location=location,
-                business_type=business_type,
-                description=description,
-                verification_status='pending'
-            )
-            messages.success(request, 'Business profile saved successfully.')
-
-        return redirect('accounts:business_profile')
+            messages.error(request, 'Update failed. Please check the form data.')
+    else:
+        form = BusinessProfileForm(instance=business)
 
     return render(request, 'accounts/business_profile.html', {
+        'form': form,
         'business': business
     })
 
 @login_required
-def business_profile(request):
+@role_required('SmallBusiness', 'EnterpriseBuyer')
+def business_dashboard_view(request):
     business = Business.objects.filter(user=request.user).first()
 
-    if request.method == 'POST':
-        business_name = escape(request.POST.get('business_name', '').strip())
-        location = escape(request.POST.get('location', '').strip())
-        business_type = request.POST.get('business_type', '').strip()
-        description = escape(request.POST.get('description', '').strip())
+    # Filtered Circles
+    buying_circles = BuyingCircle.objects.filter(
+        Q(members__business=business) | Q(created_by=business)
+    ).select_related('product','created_by').distinct()
 
-        if not business_name or not location or not business_type:
-            messages.error(request, 'Please fill in all required fields.')
-            return redirect('accounts:business_profile')
+    # Activity Ledger
+    orders = Order.objects.filter(
+        Q(buyer_business=business) | Q(supplier_business=business)
+    ).select_related('buyer_business', 'supplier_business', 'buying_circle__product').order_by('-created_at')
 
-        # Wrap the database operations in a try block
-        try:
-            if business:
-                business.business_name = business_name
-                business.location = location
-                business.business_type = business_type
-                business.description = description
-                business.save() # The ORM handles SQL injection protection here
-                messages.success(request, 'Business profile updated successfully.')
-            else:
-                Business.objects.create(
-                    user=request.user,
-                    business_name=business_name,
-                    location=location,
-                    business_type=business_type,
-                    description=description,
-                    verification_status='pending'
-                )
-                messages.success(request, 'Business profile saved successfully.')
-        
-        # The Safety Net for SQL/Database integrity errors
-        except DatabaseError:
-            messages.error(request, 'A database error occurred. Your input may contain invalid characters.')
-            return redirect('accounts:business_profile')
+    # Alert Center
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'dashboard.html', {
+        'business': business,
+        'buying_circles': buying_circles,
+        'orders': orders,
+        'notifications': notifications[:5], # Only show recent
+        'unread_count': notifications.filter(is_read=False).count(),
+    })
 
-        return redirect('accounts:business_profile')
 
-    return render(request, 'accounts/business_profile.html', {
-        'business': business
+@login_required
+@role_required('SmallBusiness', 'EnterpriseBuyer')
+def business_dashboard_view(request):
+    business = Business.objects.filter(user=request.user).first()
+
+    # Filtered Circles
+    buying_circles = BuyingCircle.objects.filter(
+        Q(members__business=business) | Q(created_by=business)
+    ).select_related('product','created_by').distinct()
+
+    # Activity Ledger
+    orders = Order.objects.filter(
+        Q(buyer_business=business) | Q(supplier_business=business)
+    ).select_related('buyer_business', 'supplier_business', 'buying_circle__product').order_by('-created_at')
+
+    # Alert Center
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'dashboard.html', {
+        'business': business,
+        'buying_circles': buying_circles,
+        'orders': orders,
+        'notifications': notifications[:5], # Only show recent
+        'unread_count': notifications.filter(is_read=False).count(),
     })
 
 @login_required
@@ -227,3 +226,59 @@ class ScaleBridgePasswordResetView(auth_views.PasswordResetView):
         form.save(**opts)
         messages.info(self.request, "If an account exists with that email, a reset link has been sent.")
         return super().form_valid(form)
+
+from django.db.models import Sum
+from django.db.models.functions import ExtractMonth
+from django.utils import timezone
+from operations.models import Order
+
+@login_required
+def analytics_dashboard(request):
+    business = Business.objects.filter(user=request.user).first()
+    current_year = timezone.now().year
+    
+    # 1. Get all completed orders for this business as a buyer
+    completed_orders = Order.objects.filter(
+        buyer_business=business, 
+        status='Completed',
+        created_at__year=current_year
+    )
+
+    # 2. Summary Calculations
+    # Actual Spend = Sum of total_price
+    actual_spend = completed_orders.aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # ROI Logic: Assume the platform saved them 20% 
+    # (So actual_spend is 80% of what they would have paid)
+    projected_market_spend = float(actual_spend) / 0.8
+    total_savings = projected_market_spend - float(actual_spend)
+    
+    # 3. Monthly Trends for Chart.js
+    monthly_stats = completed_orders.annotate(month=ExtractMonth('created_at')) \
+        .values('month') \
+        .annotate(spend=Sum('total_price')) \
+        .order_by('month')
+
+    # Prepare data for the chart (months 1-12)
+    chart_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    chart_spend = [0] * 12
+    chart_savings = [0] * 12
+    
+    for stat in monthly_stats:
+        index = stat['month'] - 1
+        spend = float(stat['spend'])
+        chart_spend[index] = spend
+        chart_savings[index] = spend * 0.25 # Demonstrating 25% savings trend
+
+    context = {
+        'actual_spend': actual_spend,
+        'total_savings': total_savings,
+        'projected_market_spend': projected_market_spend,
+        'savings_percentage': 20,
+        'chart_labels': chart_labels,
+        'chart_spend': chart_spend,
+        'chart_savings': chart_savings,
+        'business': business,
+    }
+    
+    return render(request, 'accounts/analytics.html', context)

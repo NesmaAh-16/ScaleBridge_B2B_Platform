@@ -66,3 +66,17 @@ class LoginForm(AuthenticationForm):
         label='Password',
         widget=forms.PasswordInput(attrs={'placeholder': 'Secure Password'})
     )
+
+
+from .models import Business
+class BusinessProfileForm(forms.ModelForm):
+    class Meta:
+        model = Business
+        fields = ['business_name', 'location', 'business_type', 'description', 'logo']
+        widgets = {
+            'business_name': forms.TextInput(attrs={'class': 'w-full rounded-xl border-slate-200 p-3 focus:ring-sb-green'}),
+            'location': forms.TextInput(attrs={'class': 'w-full rounded-xl border-slate-200 p-3'}),
+            'business_type': forms.Select(attrs={'class': 'w-full rounded-xl border-slate-200 p-3'}),
+            'description': forms.Textarea(attrs={'class': 'w-full rounded-xl border-slate-200 p-3', 'rows': 3}),
+            'logo': forms.FileInput(attrs={'class': 'w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sb-green/10 file:text-sb-navy hover:file:bg-sb-green/20'}),
+        }

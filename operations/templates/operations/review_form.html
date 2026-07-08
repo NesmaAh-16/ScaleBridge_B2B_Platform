@@ -33,50 +33,79 @@
     <div class="bg-white rounded-[2rem] lg:rounded-[3rem] shadow-soft-xl border border-slate-100 p-6 sm:p-8 lg:p-12 relative overflow-hidden">
         <div class="grainy-overlay absolute inset-0 opacity-5 pointer-events-none"></div>
 
-        <form method="POST" class="relative z-10 space-y-7 lg:space-y-8">
-            {% csrf_token %}
+        <form method="POST" id="trustForm" class="relative z-10 space-y-7 lg:space-y-8">
+    {% csrf_token %}
+    {{ form.rating }} <!-- Hidden field -->
 
-            <!-- Rating Field -->
-            <div class="space-y-3">
-                <label class="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
-                    Service Quality Score
-                </label>
+   <div class="space-y-4">
+    <label class="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 text-center">
+        Network Performance Rating
+    </label>
+    
+    <!-- Star Container -->
+    <div class="flex justify-center gap-3" id="star-container">
+        {% for i in "12345" %}
+        <button type="button" data-value="{{ forloop.counter }}" class="star-btn transition-all duration-300 transform hover:scale-125 focus:outline-none">
+            <!-- text-slate-200 is the empty color, fill-transparent makes it an outline -->
+            <i data-lucide="star" class="w-10 h-10 text-slate-200 fill-transparent transition-colors"></i>
+        </button>
+        {% endfor %}
+    </div>
+    
+    <p id="rating-label" class="text-center text-xs font-black text-yellow-500 uppercase tracking-widest h-4">
+        Select Rating
+    </p>
+</div>
 
-                <div class="relative">
-                    {{ form.rating }}
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-sb-teal"></i>
-                    </div>
-                </div>
+    <!-- Comment Field -->
+    <div class="space-y-3">
+        <label class="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+            Qualitative Observation
+        </label>
+        {{ form.comment }}
+    </div>
 
-                <p class="text-[10px] sm:text-xs text-sb-teal font-bold italic">
-                    1 = Poor Performance | 5 = Professional Excellence
-                </p>
-            </div>
+    <button type="submit" class="w-full min-h-12 py-4 sidebar-vanguard text-white font-black rounded-2xl shadow-glow">
+        Commit Review to Ledger
+    </button>
+</form>
 
-            <!-- Comment Field -->
-            <div class="space-y-3">
-                <label class="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
-                    Detailed Observation
-                </label>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const stars = document.querySelectorAll('.star-btn');
+        const ratingInput = document.querySelector('input[name="rating"]');
+        const label = document.getElementById('rating-label');
+        const labels = ["", "1/5 - Subpar", "2/5 - Average", "3/5 - Good", "4/5 - Excellent", "5/5 - Vanguard Gold"];
 
-                {{ form.comment }}
-            </div>
-
-            <!-- Submit Button -->
-            <div class="pt-3 lg:pt-6 space-y-4">
-                <button type="submit" class="w-full min-h-12 py-4 sidebar-vanguard text-white font-black rounded-2xl shadow-glow hover:scale-[1.02] active:scale-95 transition-all group">
-                    <span class="flex items-center justify-center gap-3 text-xs sm:text-sm uppercase tracking-widest">
-                        Commit Review to Ledger
-                        <i data-lucide="shield-check" class="w-5 h-5 text-sb-green group-hover:rotate-12 transition-transform"></i>
-                    </span>
-                </button>
-
-                <a href="{% url 'operations:order_detail' order.id %}" class="min-h-11 flex items-center justify-center text-xs font-bold text-slate-400 hover:text-sb-navy transition-colors uppercase tracking-widest">
-                    Abort Submission
-                </a>
-            </div>
-        </form>
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const selectedValue = star.getAttribute('data-value');
+                ratingInput.value = selectedValue;
+                
+                // Loop through all buttons to color them
+                stars.forEach(s => {
+                    const sValue = s.getAttribute('data-value');
+                    // Find the SVG (Lucide replaces the <i> with <svg>)
+                    const icon = s.querySelector('svg'); 
+                    
+                    if (sValue <= selectedValue) {
+                        // COLOR ON: Yellow stroke and Yellow fill
+                        icon.style.color = '#facc15'; // Tailwind yellow-400
+                        icon.style.fill = '#facc15';
+                        s.classList.add('scale-110');
+                    } else {
+                        // COLOR OFF: Gray stroke and Transparent fill
+                        icon.style.color = '#e2e8f0'; // Tailwind slate-200
+                        icon.style.fill = 'transparent';
+                        s.classList.remove('scale-110');
+                    }
+                });
+                
+                label.innerText = labels[selectedValue];
+            });
+        });
+    });
+</script>
     </div>
 
     <!-- Participants Summary -->

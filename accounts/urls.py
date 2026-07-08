@@ -41,4 +41,5 @@ path('password-reset/',
         success_url='/accounts/password-reset-complete/' # <--- ADD THIS LINE
     ),
     name='password_reset_confirm'),
+    path('analytics/', views.analytics_dashboard, name='analytics'),
 ]

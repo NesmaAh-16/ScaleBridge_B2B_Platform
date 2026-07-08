@@ -28,6 +28,7 @@ urlpatterns = [
     # 3. ADD THIS LINE: For the notification API
     path('api/notifications/unread/', views.notification_unread_count, name='unread_notifications'),
     path('ledger/', views.order_ledger_view, name='order_ledger'),
+    path('order/<int:order_id>/pdf/', views.order_pdf_view, name='order_pdf'),
 ]
 
 

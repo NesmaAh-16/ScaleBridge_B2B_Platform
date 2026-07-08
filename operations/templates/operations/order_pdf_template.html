@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Helvetica, sans-serif; color: #333; }
+        .header { border-bottom: 2px solid #0F172A; padding-bottom: 20px; margin-bottom: 30px; }
+        .invoice-id { font-size: 24px; font-weight: bold; color: #0F172A; }
+        .meta { color: #666; font-size: 12px; }
+        .section { margin-bottom: 30px; }
+        .label { font-size: 10px; text-transform: uppercase; color: #999; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #F8FAFC; text-align: left; padding: 10px; font-size: 12px; border-bottom: 1px solid #EEE; }
+        td { padding: 10px; border-bottom: 1px solid #EEE; font-size: 13px; }
+        .total-box { background: #0F172A; color: #FFF; padding: 15px; text-align: right; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="invoice-id">SCALEBRIDGE INVOICE #SB-{{ order.id }}</div>
+        <div class="meta">Generated on: {{ order.created_at|date:"F d, Y" }}</div>
+    </div>
+
+    <div class="section">
+        <table style="border: none;">
+            <tr>
+                <td style="border: none; width: 50%;">
+                    <div class="label">SUPPLIER</div>
+                    <div style="font-weight: bold;">{{ order.supplier_business.business_name }}</div>
+                    <div class="meta">{{ order.supplier_business.location }}</div>
+                </td>
+                <td style="border: none; width: 50%;">
+                    <div class="label">BILL TO</div>
+                    <div style="font-weight: bold;">{{ order.buyer_business.business_name }}</div>
+                    <div class="meta">{{ order.buyer_business.location }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item Description</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ order.buying_circle.product.name }}</td>
+                    <td>{{ order.buying_circle.product.currency }} {{ order.price_at_purchase }}</td>
+                    <td>{{ order.total_quantity }} {{ order.buying_circle.product.unit }}</td>
+                    <td style="text-align: right;">${{ order.total_price }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="total-box">
+        <div style="font-size: 10px; margin-bottom: 5px;">TOTAL PAYABLE VALUE</div>
+        <div style="font-size: 24px; font-weight: bold;">USD ${{ order.total_price }}</div>
+    </div>
+</body>
+</html>

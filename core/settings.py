@@ -108,7 +108,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Gaza' 
+
 
 USE_I18N = True
 
@@ -149,3 +150,6 @@ EMAIL_HOST_PASSWORD = 'qgtfigyjzgcdhxuf'
 
 # This is what people see in their inbox
 DEFAULT_FROM_EMAIL = 'ScaleBridge <nesmalubbad@gmail.com>'
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -2,224 +2,129 @@
 {% block page_title %}Order Ledger{% endblock %}
 
 {% block content %}
-<div class="space-y-6 lg:space-y-8">
+<div class="max-w-7xl mx-auto space-y-8">
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <!-- Header: Purpose Driven -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <p class="text-[10px] font-black text-sb-green uppercase tracking-[0.25em] mb-2">
-                Transaction History
-            </p>
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-sb-navy">
-                Order Ledger
-            </h2>
-            <p class="text-sm sm:text-base text-slate-500 font-medium mt-2">
-                Review procurement and fulfillment transactions linked to your business.
-            </p>
+            <p class="text-[10px] font-black text-sb-green uppercase tracking-[0.3em] mb-2">Audit & Reconciliation</p>
+            <h1 class="text-3xl lg:text-4xl font-black text-sb-navy tracking-tighter">Order Ledger</h1>
+            <p class="text-slate-500 font-medium mt-2">Historical record of all financial procurement and shipment activity.</p>
+        </div>
+        
+        <div class="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm min-w-[160px]">
+            <p class="text-[9px] font-black text-slate-400 uppercase">Active Portfolio</p>
+            <p class="text-xl font-black text-sb-navy">{{ orders.count }} Orders</p>
         </div>
     </div>
 
-    <!-- Mobile / Tablet Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 xl:hidden">
-        {% for order in orders %}
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-
-            <div class="flex items-start justify-between gap-4">
-                <a href="{% url 'operations:order_detail' order.id %}" class="flex items-center gap-3 min-w-0">
-                    <div class="w-3 h-3 rounded-full shrink-0
-                        {% if order.status == 'Pending' %} bg-orange-400
-                        {% elif order.status == 'Accepted' %} bg-sb-green
-                        {% else %} bg-sb-teal {% endif %}">
-                    </div>
-
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            Transaction
-                        </p>
-                        <p class="font-black text-sb-navy italic truncate">
-                            #SB-{{ order.id }}
-                        </p>
-                    </div>
-                </a>
-
-                <span class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest
-                    {% if order.status == 'Pending' %} bg-orange-50 text-orange-600 border border-orange-100
-                    {% elif order.status == 'Accepted' %} bg-sb-green/10 text-sb-green border border-sb-green/20
-                    {% elif order.status == 'Completed' %} bg-sb-navy text-sb-green shadow-glow
-                    {% else %} bg-slate-100 text-slate-400 {% endif %}">
-                    {{ order.status }}
-                </span>
-            </div>
-
-            <div class="mt-5 flex flex-wrap items-center gap-2">
-                {% if order.buyer_business.id == business.id %}
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sb-teal/5 text-sb-teal border border-sb-teal/10">
-                        <i data-lucide="arrow-down-left" class="w-3 h-3"></i>
-                        <span class="font-black text-[9px] uppercase tracking-widest">Procurement</span>
-                    </div>
-                {% else %}
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sb-green/5 text-sb-green border border-sb-green/10">
-                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                        <span class="font-black text-[9px] uppercase tracking-widest">Fulfillment</span>
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mt-5">
-                <div class="rounded-2xl bg-sb-neutral border border-slate-100 p-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Entity
-                    </p>
-                    <p class="text-sm font-black text-sb-navy mt-2 leading-snug">
-                        {% if order.buyer_business.id == business.id %}
-                            {{ order.supplier_business.business_name }}
-                        {% else %}
-                            {{ order.buyer_business.business_name }}
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div class="rounded-2xl bg-sb-neutral border border-slate-100 p-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Value
-                    </p>
-                    <p class="text-xl font-black text-sb-navy mt-2">
-                        ${{ order.total_price }}
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-5 flex flex-col sm:flex-row gap-3">
-                {% if order.supplier_business.id == business.id and order.status != 'Completed' and order.status != 'CANCELLED' %}
-                    <form action="{% url 'operations:update_order_status' order.id %}" method="POST" class="w-full">
-                        {% csrf_token %}
-                        {% if order.status == 'Pending' %}
-                            <button name="action" value="accept" class="w-full min-h-12 bg-sb-green text-sb-navy rounded-2xl text-xs font-black uppercase tracking-widest shadow-glow hover:scale-[1.01] transition-all">Accept</button>
-                        {% elif order.status == 'Accepted' %}
-                            <button name="action" value="start" class="w-full min-h-12 bg-sb-teal text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-[1.01] transition-all">Dispatch</button>
-                        {% elif order.status == 'InProgress' %}
-                            <button name="action" value="complete" class="w-full min-h-12 bg-sb-navy text-sb-green rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-[1.01] transition-all">Finalize</button>
-                        {% endif %}
-                    </form>
-                {% endif %}
-
-                <a href="{% url 'operations:order_detail' order.id %}" class="w-full min-h-12 flex items-center justify-center gap-2 bg-sb-neutral text-sb-navy hover:bg-sb-teal hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
-                    <i data-lucide="eye" class="w-4 h-4"></i>
-                    Details
-                </a>
-            </div>
-
-        </div>
-        {% empty %}
-        <div class="md:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center">
-            <i data-lucide="database-zap" class="w-14 h-14 text-slate-200 mx-auto mb-4"></i>
-            <h3 class="text-lg font-black text-sb-navy">No Ledger Entries Detected</h3>
-            <p class="text-sm text-slate-400 font-medium mt-2">Transactions will appear here once orders are created.</p>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Desktop Table -->
-    <div class="hidden xl:block bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+    <!-- Desktop Table (Polished & Professional) -->
+    <div class="hidden xl:block bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
         <table class="w-full text-left">
             <thead>
-                <tr class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                    <th class="px-8 py-6">ID</th>
-                    <th class="px-8 py-6">Entity</th>
-                    <th class="px-8 py-6">Counterparty</th>
-                    <th class="px-8 py-6">Value</th>
-                    <th class="px-8 py-6">Status</th>
-                    <th class="px-8 py-6 text-right">Action</th>
+                <tr class="bg-slate-50/50 border-b border-slate-100">
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ID & Timeline</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Transaction Type</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Counterparty Entity</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Financial Value</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                    <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Activity</th>
                 </tr>
             </thead>
-
             <tbody class="divide-y divide-slate-50">
                 {% for order in orders %}
-                <tr class="group hover:bg-slate-50/80 transition-all duration-300">
-
-                    <td class="px-8 py-7">
-                        <a href="{% url 'operations:order_detail' order.id %}" class="flex items-center gap-3 group/id">
-                            <div class="w-2.5 h-2.5 rounded-full shadow-sm transition-transform group-hover/id:scale-125
-                                {% if order.status == 'Pending' %} bg-orange-400
-                                {% elif order.status == 'Accepted' %} bg-sb-green
-                                {% else %} bg-sb-teal {% endif %}">
-                            </div>
-                            <span class="font-black text-sb-navy italic group-hover/id:text-sb-teal transition-colors">
-                                #SB-{{ order.id }}
-                            </span>
-                            <i data-lucide="external-link" class="w-3 h-3 text-slate-300 opacity-0 group-hover/id:opacity-100 transition-opacity"></i>
-                        </a>
+                <tr class="hover:bg-slate-50/40 transition-colors group">
+                    <!-- ID & Timeline -->
+                    <td class="px-8 py-6">
+                        <span class="font-black text-sb-navy text-sm italic">#SB-{{ order.id }}</span>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1">{{ order.created_at|date:"M d, Y" }}</p>
                     </td>
 
-                    <td class="px-8 py-7">
+                    <!-- Transaction Type -->
+                    <td class="px-8 py-6">
                         {% if order.buyer_business.id == business.id %}
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sb-teal/5 text-sb-teal border border-sb-teal/10">
-                                <i data-lucide="arrow-down-left" class="w-3 h-3"></i>
-                                <span class="font-black text-[9px] uppercase tracking-widest">Procurement</span>
-                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-wider border border-blue-100">
+                                <i data-lucide="arrow-down-left" class="w-3 h-3"></i> Procurement
+                            </span>
                         {% else %}
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sb-green/5 text-sb-green border border-sb-green/10">
-                                <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                                <span class="font-black text-[9px] uppercase tracking-widest">Fulfillment</span>
-                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sb-green/10 text-sb-green text-[10px] font-black uppercase tracking-wider border border-sb-green/20">
+                                <i data-lucide="arrow-up-right" class="w-3 h-3"></i> Fulfillment
+                            </span>
                         {% endif %}
                     </td>
 
-                    <td class="px-8 py-7">
-                        <p class="text-[11px] font-black text-slate-600 uppercase tracking-tight">
-                            {% if order.buyer_business.id == business.id %}
-                                {{ order.supplier_business.business_name }}
-                            {% else %}
-                                {{ order.buyer_business.business_name }}
-                            {% endif %}
-                        </p>
-                    </td>
-
-                    <td class="px-8 py-7">
-                        <span class="text-sm font-black text-sb-navy">${{ order.total_price }}</span>
-                    </td>
-
-                    <td class="px-8 py-7">
-                        <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest
-                            {% if order.status == 'Pending' %} bg-orange-50 text-orange-600 border border-orange-100
-                            {% elif order.status == 'Accepted' %} bg-sb-green/10 text-sb-green border border-sb-green/20
-                            {% elif order.status == 'Completed' %} bg-sb-navy text-sb-green shadow-glow
-                            {% else %} bg-slate-100 text-slate-400 {% endif %}">
-                            {{ order.status }}
-                        </span>
-                    </td>
-
-                    <td class="px-8 py-7 text-right">
-                        <div class="flex items-center justify-end gap-3">
-                            {% if order.supplier_business.id == business.id and order.status != 'Completed' and order.status != 'CANCELLED' %}
-                                <form action="{% url 'operations:update_order_status' order.id %}" method="POST" class="inline-flex gap-2">
-                                    {% csrf_token %}
-                                    {% if order.status == 'Pending' %}
-                                        <button name="action" value="accept" class="px-4 py-2 bg-sb-green text-sb-navy rounded-xl text-[9px] font-black uppercase tracking-widest shadow-glow hover:scale-105 transition-all">Accept</button>
-                                    {% elif order.status == 'Accepted' %}
-                                        <button name="action" value="start" class="px-4 py-2 bg-sb-teal text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all">Dispatch</button>
-                                    {% elif order.status == 'InProgress' %}
-                                        <button name="action" value="complete" class="px-4 py-2 bg-sb-navy text-sb-green rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all">Finalize</button>
-                                    {% endif %}
-                                </form>
-                            {% endif %}
-
-                            <a href="{% url 'operations:order_detail' order.id %}" class="min-w-10 min-h-10 flex items-center justify-center bg-slate-100 text-slate-400 hover:text-sb-teal hover:bg-sb-teal/10 rounded-xl transition-all">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </a>
+                    <!-- Counterparty Entity (Identity Logic) -->
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
+                                {% if order.buyer_business.id == business.id %}
+                                    {% if order.supplier_business.logo %}<img src="{{ order.supplier_business.logo.url }}" class="w-full h-full object-cover">{% else %}<span class="text-[10px] font-bold text-slate-400">{{ order.supplier_business.business_name|slice:":1" }}</span>{% endif %}
+                                {% else %}
+                                    {% if order.buyer_business.logo %}<img src="{{ order.buyer_business.logo.url }}" class="w-full h-full object-cover">{% else %}<span class="text-[10px] font-bold text-slate-400">{{ order.buyer_business.business_name|slice:":1" }}</span>{% endif %}
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">
+                                {% if order.buyer_business.id == business.id %}{{ order.supplier_business.business_name }}{% else %}{{ order.buyer_business.business_name }}{% endif %}
+                            </span>
                         </div>
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="px-8 py-24 text-center">
-                        <i data-lucide="database-zap" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>
-                        <p class="text-slate-400 font-black italic uppercase tracking-widest text-sm">No Ledger Entries Detected</p>
+
+                    <!-- Financial Value -->
+                    <td class="px-8 py-6">
+                        <p class="font-black text-sb-navy text-sm">{{ order.buying_circle.product.currency|default:"$" }} {{ order.total_price }}</p>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-8 py-6">
+                        {% if order.status == 'Completed' %}
+                            <span class="px-3 py-1 bg-sb-navy text-sb-green text-[9px] font-black uppercase tracking-widest rounded-full">Complete</span>
+                        {% elif order.status == 'Pending' %}
+                            <span class="px-3 py-1 bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-black uppercase tracking-widest rounded-full">Pending</span>
+                        {% else %}
+                            <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-full">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Activity (Refined Actions) -->
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            {% if order.supplier_business.id == business.id and order.status != 'Completed' and order.status != 'CANCELLED' %}
+                            <form action="{% url 'operations:update_order_status' order.id %}" method="POST" class="inline-flex">
+                                {% csrf_token %}
+                                <button name="action" value="{% if order.status == 'Pending' %}accept{% elif order.status == 'Accepted' %}start{% else %}complete{% endif %}" 
+                                        class="h-9 px-4 bg-sb-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-sb-teal transition-all">
+                                    Process Status
+                                </button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'operations:order_detail' order.id %}" class="h-9 w-9 flex items-center justify-center bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-200 transition-all">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Mobile View: Always Responsive -->
+    <div class="xl:hidden space-y-4">
+        {% for order in orders %}
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <span class="font-black text-sb-navy italic">#SB-{{ order.id }}</span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">{{ order.created_at|date:"M d" }}</span>
+            </div>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Counterparty Entity</p>
+            <p class="text-sm font-bold text-slate-900 mb-6">{% if order.buyer_business.id == business.id %}{{ order.supplier_business.business_name }}{% else %}{{ order.buyer_business.business_name }}{% endif %}</p>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                <p class="text-lg font-black text-sb-navy">${{ order.total_price }}</p>
+                <a href="{% url 'operations:order_detail' order.id %}" class="px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-black uppercase tracking-widest text-sb-navy">View Record</a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
 </div>
