@@ -626,3 +626,49 @@ def order_pdf_view(request, order_id):
        return HttpResponse('Error generating PDF', status=500)
     return response
 
+from groq import Groq 
+import os
+from dotenv import load_dotenv
+load_dotenv() 
+@login_required
+def procurement_advisor_api(request):
+    user_query = request.GET.get('query')
+    business = Business.objects.filter(user=request.user).first()
+    
+    # 1. Context Gathering
+    available_products = Product.objects.exclude(business=business)[:5]
+    product_context = ", ".join([f"{p.name}" for p in available_products])
+
+    # 2. PROFESSIONAL PERSONA SETTING
+    system_instructions = (
+        f"Identity: You are the ScaleBridge Strategic AI Advisor. "
+        f"User: You are assisting Nesma, the director of {business.business_name}. "
+        f"Tone: Executive, formal, and data-driven. Do not say 'Welcome to the marketplace.' "
+        f"Context: The current marketplace has {product_context} available for procurement. "
+        "Rules: "
+        "1. Address the user as 'Nesma' or 'Director'. "
+        "2. Provide strategic advice on supply chain optimization and bulk purchasing. "
+        "3. Use professional B2B terminology (e.g., 'Lead times', 'Fulfillment', 'Aggregation'). "
+        "4. Be extremely concise. No small talk."
+    )
+
+    try:
+        # Pull the key from the OS environment
+        api_key = os.getenv("GROQ_API_KEY")
+        
+        if not api_key:
+            return JsonResponse({'error': 'API configuration missing'}, status=500)
+            
+        client = Groq(api_key=api_key)
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_instructions},
+                {"role": "user", "content": user_query}
+            ],
+            model="llama-3.3-70b-versatile",
+            max_tokens=250, # Hard limit on length
+            temperature=0.7, # Lower temperature = more professional/focused
+        )
+        return JsonResponse({'answer': chat_completion.choices[0].message.content})
+    except Exception as e:
+        return JsonResponse({'error': "Advisor is currently busy. Please try again later."}, status=500)
