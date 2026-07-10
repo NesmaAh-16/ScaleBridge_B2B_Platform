@@ -13,35 +13,49 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Cleaning old demo data...")
-        # Optional: Uncomment if you want a fresh start every time
-        # User.objects.exclude(is_superuser=True).delete() 
-        # Category.objects.all().delete()
 
         # 1. CREATE CATEGORIES
         agri, _ = Category.objects.get_or_create(name="Agriculture")
         text, _ = Category.objects.get_or_create(name="Textiles")
         cons, _ = Category.objects.get_or_create(name="Construction")
 
-        # 2. SEED 5+ BUSINESSES
+        # 2. CREATE THE ADMIN USER
+        # admiMns@example.com, pass: nesma1234
+        admin_user, created = User.objects.get_or_create(
+            email="admiMns@example.com",
+            defaults={
+                'username': 'admin_nesma', 
+                'role': 'Admin',
+                'is_staff': True,
+                'is_superuser': True
+            }
+        )
+        admin_user.set_password("nesma1234")
+        admin_user.save()
+        self.stdout.write("Admin user created.")
+
+        # 3. SEED BUSINESSES (Integrated your specific users)
+        # Format: (email, password, business_name, role, business_type, location)
         business_data = [
-            ("abd@agro.com", "Global Agri Exports", "Supplier", "Agriculture", "Cairo, Egypt"),
-            ("atlas@textiles.com", "Atlas Fabrics", "Supplier", "Textiles", "Casablanca, Morocco"),
-            ("titan@build.com", "Titan Steel & Iron", "Supplier", "Construction", "Dubai, UAE"),
-            ("buyer1@shop.com", "Green Valley Mart", "SmallBusiness", "Retail", "Amman, Jordan"),
-            ("buyer2@enterprise.com", "Grand Horizon Dev", "EnterpriseBuyer", "Construction", "Riyadh, KSA"),
+            ("abd@agro.com", "vanguard2024", "Global Agri Exports", "Supplier", "Agriculture", "Cairo, Egypt"),
+            ("atlas@textiles.com", "vanguard2024", "Atlas Fabrics", "Supplier", "Textiles", "Casablanca, Morocco"),
+            ("titan@build.com", "vanguard2024", "Titan Steel & Iron", "Supplier", "Construction", "Dubai, UAE"),
+            ("nesmalubbad@gmail.com", "nosa1234", "Nesma Small Business", "SmallBusiness", "Retail", "Gaza, Palestine"),
+            ("mahmoudsameer059@gmail.com", "mah12345", "Mahmoud Enterprise", "EnterpriseBuyer", "Construction", "Gaza, Palestine"),
+            ("shaimaamahmoudobaid@gmail.com", "sha12345", "Shaimaa Textile Group", "EnterpriseBuyer", "Textiles", "Gaza, Palestine"),
         ]
 
         businesses = []
-        for email, name, role, b_type, loc in business_data:
+        for email, password, name, role, b_type, loc in business_data:
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={'username': email.split('@')[0], 'role': role}
             )
-            if created:
-                user.set_password("vanguard2024")
-                user.save()
+            # We update password every time to ensure it matches your request
+            user.set_password(password)
+            user.save()
             
-            biz, _ = Business.objects.get_or_create(
+            biz, _ = Business.objects.update_or_create(
                 user=user,
                 defaults={
                     'business_name': name,
@@ -53,9 +67,10 @@ class Command(BaseCommand):
             )
             businesses.append(biz)
 
-        agro_biz, atlas_biz, titan_biz, small_biz, ent_biz = businesses
+        # Unpack the first 5 for the rest of the script logic
+        agro_biz, atlas_biz, titan_biz, small_biz, ent_biz = businesses[:5]
 
-        # 3. SEED 15+ PRODUCTS
+        # 4. SEED PRODUCTS
         products = [
             (agro_biz, agri, "Organic Durum Wheat", "ton", 280, "MATERIAL"),
             (agro_biz, agri, "Premium Arabica Beans", "kg", 12, "MATERIAL"),
@@ -84,27 +99,25 @@ class Command(BaseCommand):
             )
             product_objs.append(p)
 
-        # 4. BUYING CIRCLE SCENARIOS
-        # Scenario A: "Near-Threshold" (95%)
+        # 5. BUYING CIRCLE SCENARIOS
         near_threshold = BuyingCircle.objects.create(
             created_by=small_biz,
-            product=product_objs[0], # Wheat
+            product=product_objs[0], 
             target_quantity=Decimal(1000),
             current_quantity=Decimal(950),
             status='Open',
             deadline=date.today() + timedelta(days=2)
         )
 
-        # Scenario B: "Just Opened" (0%)
         just_opened = BuyingCircle.objects.create(
             created_by=ent_biz,
-            product=product_objs[6], # Steel
+            product=product_objs[6], 
             target_quantity=Decimal(500),
             current_quantity=Decimal(0),
             status='Open'
         )
 
-        # 5. HISTORICAL INTEGRITY (3 Completed Orders + 5-Star Reviews)
+        # 6. HISTORICAL INTEGRITY
         for i in range(3):
             hist_order = Order.objects.create(
                 buyer_business=small_biz,
@@ -122,7 +135,6 @@ class Command(BaseCommand):
                 comment="Exceptional logistics and product purity. Vanguard level service."
             )
         
-        # Update Trust Score
         agro_biz.update_trust_score()
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded Vanguard Demo Environment.'))
+        self.stdout.write(self.style.SUCCESS('Successfully seeded Vanguard Demo Environment with requested users.'))
