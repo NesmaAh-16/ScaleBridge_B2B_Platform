@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from accounts.models import User, Business
+from accounts.models import Business
 
 class Category(models.Model):
     name = models.CharField(max_length=100) # Increased slightly
@@ -45,8 +45,7 @@ class Product(models.Model):
         ('unit', 'unit'),
     ]
 
-    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='products')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    business = models.ForeignKey('accounts.Business', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     unit = models.CharField(max_length=45, choices=UNIT_CHOICES)
@@ -56,7 +55,7 @@ class Product(models.Model):
     product_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_group_buy = models.BooleanField(default=False)
     min_order_quantity = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
-    
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,7 +69,7 @@ class BuyingCircle(models.Model):
         ('Completed', 'Completed'),
     ]
     
-    created_by = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='created_circles')
+    created_by = models.ForeignKey('accounts.Business', on_delete=models.CASCADE, related_name='created_circles')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     target_quantity = models.DecimalField(max_digits=15, decimal_places=2)
     current_quantity = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
@@ -113,9 +112,8 @@ class Order(models.Model):
     
     # Optional relation to circle (buying_circle_id INT)
     buying_circle = models.ForeignKey(BuyingCircle, on_delete=models.SET_NULL, null=True, blank=True)
-    buyer_business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='purchases')
-    supplier_business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='sales')
-    
+    buyer_business = models.ForeignKey('accounts.Business', on_delete=models.CASCADE, related_name='purchases')
+    supplier_business = models.ForeignKey('accounts.Business', on_delete=models.CASCADE, related_name='sales')
     total_quantity = models.DecimalField(max_digits=15, decimal_places=2)
     price_at_purchase = models.DecimalField(max_digits=15, decimal_places=2)
     total_price = models.DecimalField(max_digits=15, decimal_places=2)
@@ -146,7 +144,7 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=255)
     message = models.TextField()
     is_read = models.BooleanField(default=False) # is_read TINYINT

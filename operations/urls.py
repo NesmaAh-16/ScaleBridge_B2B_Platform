@@ -22,9 +22,10 @@ urlpatterns = [
     path('orders/<int:order_id>/update/', views.update_order_status, name='update_order_status'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
     path('orders/<int:order_id>/review/', views.leave_review, name='leave_review'),
-    path('api/notifications/unread/', views.notification_unread_count, name='unread_notifications'),
+    path('notifications/unread-count/', views.notification_unread_count, name='unread_notifications'),
     path('ledger/', views.order_ledger_view, name='order_ledger'),
     path('order/<int:order_id>/pdf/', views.order_pdf_view, name='order_pdf'),
+    path('api/ai-advisor/', views.procurement_advisor_api, name='ai_advisor'),
 ]
 
 
