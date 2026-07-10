@@ -22,9 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--#)(q1eh_y5w^c*b_hwb&6rj8sqwpq0e6c=gz*ndry)vi1%c0e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['16.171.161.227', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -154,3 +154,4 @@ import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'accounts.User'
+STATIC_ROOT = BASE_DIR / "staticfiles"
