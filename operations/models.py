@@ -51,7 +51,7 @@ class Product(models.Model):
     unit = models.CharField(max_length=45, choices=UNIT_CHOICES)
     price = models.DecimalField(max_digits=15, decimal_places=2)
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
-
+    image = models.ImageField(upload_to='product_images/', null=True, blank=True)
     product_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_group_buy = models.BooleanField(default=False)
     min_order_quantity = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
@@ -82,9 +82,18 @@ class BuyingCircle(models.Model):
     def progress_percentage(self):
         if not self.target_quantity or self.target_quantity <= 0:
             return 0
-        percentage = (self.current_quantity / self.target_quantity) * 100
-        return min(round(percentage), 100)
-
+        # Use float for the calculation to ensure precision
+        percentage = (float(self.current_quantity) / float(self.target_quantity)) * 100
+        # Return at least 0.1 if there is any quantity, or round to 1 decimal place
+        if 0 < percentage < 1:
+            return 0.1
+        return min(round(percentage, 1), 100)
+    @property
+    def remaining_quantity(self):
+        """Calculates the gap to target. Ensures we never return a negative number."""
+        diff = self.target_quantity - self.current_quantity
+        return max(diff, 0)
+    
     @property
     def progress_label(self):
         return f"{self.current_quantity:,.0f} / {self.target_quantity:,.0f}"

@@ -34,7 +34,7 @@ def login_view(request):
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
-        messages.success(request, f'Welcome back, {user.first_name or user.email}!')
+        messages.success(request, f'Welcome back, {user.first_name}!')
         return redirect('accounts:dashboard')
 
     return render(request, 'accounts/login.html', {'form': form})
@@ -67,11 +67,17 @@ def admin_dashboard_view(request):
     total_businesses = Business.objects.count()
     pending_businesses = Business.objects.filter(verification_status='pending').count()
     active_businesses = Business.objects.filter(verification_status='approved').count()
+    
+    # PROFESSOR'S FIX: Logic to avoid using email in the greeting
+    # We prefer First Name, then "Administrator" as a professional fallback
+    display_name = request.user.first_name if request.user.first_name else "Administrator"
+
     return render(request, 'accounts/admin_dashboard.html', {
         'total_users': total_users,
         'total_businesses': total_businesses,
         'pending_businesses': pending_businesses,
         'active_businesses': active_businesses,
+        'display_name': display_name,  # Clean variable for the template
     })
 
 

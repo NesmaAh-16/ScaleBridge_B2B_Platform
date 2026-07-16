@@ -4,7 +4,7 @@
 {% block content %}
 <div class="flex flex-col xl:flex-row gap-8">
 
-    <!-- SIDEBAR: Strategic Filters (Responsive & Meaningful) -->
+    <!-- SIDEBAR: Strategic Filters -->
     <aside class="w-full xl:w-80 shrink-0">
         <details class="group xl:block bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" open>
             <summary class="xl:hidden list-none cursor-pointer flex items-center justify-between p-6">
@@ -13,7 +13,7 @@
             </summary>
 
             <div class="p-6 pt-0 xl:pt-6 space-y-8">
-                <!-- Search (Meaningful Search) -->
+                <!-- Search -->
                 <form method="GET" class="relative">
                     <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search items..."
                            class="w-full h-12 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-sb-navy/5 outline-none">
@@ -59,71 +59,75 @@
             {% for row in products_with_circles %}
             {% with product=row.product circle=row.open_circle closed_circle=row.closed_circle %}
             
-            <div class="bg-white rounded-[2rem] border border-slate-100 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
+            <div class="bg-white rounded-[2rem] border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group overflow-hidden">
                 
-                <!-- Branding Context -->
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden shrink-0">
-                        {% if product.business.logo %}
-                            <img src="{{ product.business.logo.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center bg-sb-navy text-white text-xs font-bold">{{ product.business.business_name|slice:":1" }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="min-w-0">
-                        <h4 class="text-xs font-black text-slate-900 truncate">{{ product.business.business_name }}</h4>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verified Enterprise</p>
-                    </div>
-                </div>
-
-                <!-- Product Details -->
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-[9px] font-black text-sb-green uppercase tracking-[0.2em]">{{ product.category.name }}</p>
-                        {% if product.is_group_buy %}
-                            <span class="bg-sb-navy/5 text-sb-navy text-[8px] font-black px-2 py-1 rounded uppercase">Group Buy Available</span>
-                        {% endif %}
-                    </div>
-                    
-                    <h3 class="text-lg font-black text-slate-900 leading-tight group-hover:text-sb-green transition-colors">{{ product.name }}</h3>
-                    <p class="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{{ product.description|default:"Detailed specifications available on request." }}</p>
-
-                    <!-- Circle Progress (If applicable) -->
-                    {% if product.is_group_buy and circle %}
-                    <div class="mt-5 space-y-2">
-                        <div class="flex justify-between text-[9px] font-black uppercase text-slate-400">
-                            <span>Procurement Progress</span>
-                            <span>{{ circle.progress_percentage }}%</span>
+                <!-- 1. PRODUCT IMAGE AREA -->
+                <div class="relative h-48 w-full bg-slate-50 overflow-hidden border-b border-slate-50">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                            <i data-lucide="image" class="w-10 h-10 mb-2"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest">No Image Available</span>
                         </div>
-                        <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-sb-green transition-all duration-700" style="width: {{ circle.progress_percentage }}%"></div>
-                        </div>
-                    </div>
                     {% endif %}
-                </div>
-
-                <!-- Pricing & Action -->
-                <div class="mt-8 pt-6 border-t border-slate-50">
-                    <div class="flex items-baseline gap-2 mb-5">
-                        <span class="text-2xl font-black text-sb-navy">{{ product.currency }} {{ product.price }}</span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">/ {{ product.unit }}</span>
-                    </div>
 
                     {% if product.is_group_buy %}
-                        {% if circle %}
-                            <a href="{% url 'operations:circle_detail' circle.pk %}" class="w-full block text-center py-4 bg-sb-green text-sb-navy rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg transition-all">
-                                Participate in Circle
-                            </a>
+                        <div class="absolute top-4 right-4 bg-sb-navy text-white text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
+                            Group Buy
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="p-6 flex flex-col flex-1">
+                    <!-- 2. CLEAN SUPPLIER NAME (Removed Photo & Checkmark) -->
+                    <div class="mb-4">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{{ product.business.business_name }}</span>
+                    </div>
+
+                    <!-- 3. PRODUCT DETAILS -->
+                    <div class="flex-1">
+                        <p class="text-[9px] font-black text-sb-green uppercase tracking-[0.2em] mb-1">{{ product.category.name }}</p>
+                        <h3 class="text-lg font-black text-slate-900 leading-tight group-hover:text-sb-green transition-colors">{{ product.name }}</h3>
+                        <p class="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{{ product.description|default:"Detailed specifications available on request." }}</p>
+
+                        <!-- Progress Bar Logic -->
+                        {% if product.is_group_buy and circle %}
+                        <div class="mt-5 space-y-2">
+                            <div class="flex justify-between text-[9px] font-black uppercase text-slate-400">
+                                <span>Procurement Progress</span>
+                                <span>{{ circle.progress_percentage }}%</span>
+                            </div>
+                            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-sb-green transition-all duration-700" style="width: {{ circle.progress_percentage }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 4. PRICING & ACTION -->
+                    <div class="mt-8 pt-6 border-t border-slate-50">
+                        <div class="flex items-baseline gap-2 mb-5">
+                            <span class="text-2xl font-black text-sb-navy">{{ product.currency }} {{ product.price }}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">/ {{ product.unit }}</span>
+                        </div>
+
+                        {% if product.is_group_buy %}
+                            {% if circle %}
+                                <a href="{% url 'operations:circle_detail' circle.pk %}" class="w-full block text-center py-4 bg-sb-green text-sb-navy rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg transition-all">
+                                    Participate in Circle
+                                </a>
+                            {% else %}
+                                <button disabled class="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">
+                                    Target Reached
+                                </button>
+                            {% endif %}
                         {% else %}
-                            <button disabled class="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">
-                                Target Reached
+                            <button class="w-full py-4 bg-sb-navy text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all">
+                                Direct Purchase
                             </button>
                         {% endif %}
-                    {% else %}
-                        <button class="w-full py-4 bg-sb-navy text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all">
-                            Direct Purchase
-                        </button>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
 

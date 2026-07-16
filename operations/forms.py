@@ -68,14 +68,16 @@ class BuyingCircleForm(forms.Form):
     )
 
 
+from decimal import Decimal # Import this at the top
+
 class JoinCircleForm(forms.Form):
     requested_quantity = forms.DecimalField(
         max_digits=15,
         decimal_places=2,
-        min_value=0,
+        min_value=Decimal('0.01'), # Use string '0.01' to ensure exact precision
         widget=forms.NumberInput(attrs={
-            'class': INPUT,
-            'placeholder': 'How much do you need?',
+            'class': 'w-full h-14 px-5 bg-slate-50 border border-slate-100 rounded-2xl text-lg font-black focus:ring-4 focus:ring-sb-navy/5 outline-none',
+            'placeholder': '0.00',
             'step': '0.01',
         }),
         label='Your Requested Quantity',

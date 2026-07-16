@@ -13,6 +13,7 @@ from django.db import transaction
 from .models import Notification 
 from django.db.models import Q
 from django.http import JsonResponse
+from django.db.models import F 
 
 # ---------------------------------------------------------------------------
 # Product CRUD
@@ -340,13 +341,16 @@ def _maybe_close_circle(circle):
 # --- 2. THE VIEW FUNCTION (THIS IS WHERE REQUEST AND PK LIVE) ---
 @login_required
 @role_required('SmallBusiness')
-def circle_join(request, pk): # <--- 'request' and 'pk' are defined HERE
+def circle_join(request, pk):
     if request.method != 'POST':
         return redirect('operations:circle_detail', pk=pk)
 
     form = JoinCircleForm(request.POST)
     if not form.is_valid():
-        messages.error(request, 'Invalid quantity. Please try again.')
+        # PROFESSOR'S FIX: Extract the actual error message from the form
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{error}") # This will now say "Ensure this value is greater than or equal to 0.01"
         return redirect('operations:circle_detail', pk=pk)
 
     requested_qty = form.cleaned_data['requested_quantity']
@@ -370,8 +374,9 @@ def circle_join(request, pk): # <--- 'request' and 'pk' are defined HERE
                 requested_quantity=requested_qty,
             )
 
-            circle.current_quantity += requested_qty
+            circle.current_quantity = F('current_quantity') + requested_qty
             circle.save()
+            circle.refresh_from_db() # Reload to get the new value for the success message
 
             _maybe_close_circle(circle)
 

@@ -1,251 +1,245 @@
-{% extends 'base.html' %}
-{% block page_title %}Circle — {{ circle.product.name }}{% endblock %}
+{% extends 'base.html' %} 
+{% block page_title %}Circle — {{ circle.product.name }}{% endblock %} 
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="space-y-6 lg:space-y-8 max-w-6xl mx-auto">
+  <!-- Back Navigation -->
+  <a href="{% url 'operations:buying_circle_list' %}" class="min-h-11 inline-flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i> All Circles
+  </a>
 
-    <a href="{% url 'operations:buying_circle_list' %}" class="min-h-11 inline-flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-sb-navy transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i> All Circles
-    </a>
+  <!-- Main Header Card -->
+  <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+      <div class="flex items-start gap-4 sm:gap-5">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 {% if circle.status == 'Open' %}bg-sb-teal/10{% elif circle.status == 'Closed' %}bg-sb-green/10{% else %}bg-gray-100{% endif %}">
+          <i data-lucide="users" class="w-8 h-8 {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}"></i>
+        </div>
 
-    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-            <div class="flex items-start gap-4 sm:gap-5">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0
-                    {% if circle.status == 'Open' %}bg-sb-teal/10{% elif circle.status == 'Closed' %}bg-sb-green/10{% else %}bg-gray-100{% endif %}">
-                    <i data-lucide="users" class="w-8 h-8
-                        {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}"></i>
-                </div>
+        <div class="min-w-0">
+          <span class="text-[10px] font-black uppercase tracking-widest {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}">
+            {{ circle.status }} Circle
+          </span>
+          <h1 class="text-xl sm:text-3xl font-black text-sb-navy mt-1 leading-tight">{{ circle.product.name }}</h1>
+          <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+            Supplier: <span class="font-bold text-sb-navy">{{ circle.product.business.business_name }}</span>
+            &nbsp;·&nbsp;
+            <span class="font-bold text-sb-navy">{{ circle.product.currency }} {{ circle.product.price }}</span> / {{ circle.product.unit }}
+          </p>
+        </div>
+      </div>
 
-                <div class="min-w-0">
-                    <span class="text-[10px] font-black uppercase tracking-widest
-                        {% if circle.status == 'Open' %}text-sb-teal{% elif circle.status == 'Closed' %}text-sb-green{% else %}text-gray-400{% endif %}">
-                        {{ circle.status }}
-                    </span>
-                    <h1 class="text-xl sm:text-2xl font-black text-sb-navy mt-1 leading-tight">
-                        {{ circle.product.name }}
-                    </h1>
-                    <p class="text-sm text-slate-500 mt-1 leading-relaxed">
-                        Supplier: <span class="font-bold text-sb-navy">{{ circle.product.business.business_name }}</span>
-                        &nbsp;·&nbsp;
-                        <span class="font-bold text-sb-navy">{{ circle.product.currency }} {{ circle.product.price }}</span> / {{ circle.product.unit }}
-                    </p>
-                    {% if circle.deadline %}
-                    <p class="text-xs text-slate-400 font-medium mt-1">
-                        <i data-lucide="calendar" class="w-3 h-3 inline-block mr-1"></i>
-                        Deadline: {{ circle.deadline }}
-                    </p>
-                    {% endif %}
-                </div>
+      <div class="shrink-0 text-left md:text-center">
+        <div class="text-4xl lg:text-6xl font-black {% if circle.is_reached %}text-sb-green{% else %}text-sb-navy{% endif %}">
+          {{ circle.progress_percentage }}%
+        </div>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Allocation Filled</p>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="mt-10 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+        <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-sb-navy">{{ circle.current_quantity|floatformat:"-2" }}</span>
+            <span class="text-sm font-bold text-slate-400 uppercase">of {{ circle.target_quantity|floatformat:"-2" }} {{ circle.product.unit }} Goal</span>
+        </div>
+        <span class="text-[10px] font-black text-sb-navy uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">Aggregation Stage</span>
+      </div>
+
+      <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-1000" 
+               style="width:{{ circle.progress_percentage }}%; background-color: {% if circle.is_reached %}rgb(144, 191, 73){% else %}rgb(38, 102, 117){% endif %};">
+          </div>
+      </div>
+
+      <div class="flex justify-between items-center">
+          {% if circle.is_reached %}
+            <p class="text-xs font-bold text-sb-green flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3 h-3"></i> Optimized order generated.
+            </p>
+          {% else %}
+            <p class="text-xs font-semibold text-slate-400">
+              Requirement: <span class="text-sb-navy font-bold">{{ circle.remaining_quantity|floatformat:"-2" }} {{ circle.product.unit }}</span> remaining to unlock bulk fulfillment.
+            </p>
+          {% endif %}
+          
+          {% if circle.deadline %}
+          <div class="flex items-center gap-1.5 text-xs font-bold text-red-400 uppercase tracking-wider">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              Ends: {{ circle.deadline }}
+          </div>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Information Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+    
+    <!-- LEFT: Detailed Specifications & Supplier -->
+    <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Product Overview -->
+        <div class="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Material Overview</h3>
+            <div class="prose prose-slate max-w-none">
+                <p class="text-slate-600 leading-relaxed font-medium">
+                    {{ circle.product.description|default:"No detailed description provided for this material. Please contact the supplier for specific technical data sheets or certificates of analysis." }}
+                </p>
             </div>
-
-            <div class="shrink-0 text-left md:text-center">
-                <div class="text-4xl lg:text-5xl font-black
-                    {% if circle.progress_percentage >= 100 %}text-sb-green{% else %}text-sb-navy{% endif %}">
-                    {{ circle.progress_percentage }}%
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-8 pt-8 border-t border-slate-50">
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Asset Type</p>
+                    <p class="text-sm font-bold text-sb-navy">{{ circle.product.get_product_type_display }}</p>
                 </div>
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Filled</p>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Unit Weight</p>
+                    <p class="text-sm font-bold text-sb-navy">Standard {{ circle.product.unit }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Category</p>
+                    <p class="text-sm font-bold text-sb-navy">{{ circle.product.category.name|default:"Unclassified" }}</p>
+                </div>
             </div>
         </div>
 
-        <div class="mt-8 space-y-3">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                <span class="text-sm font-black text-sb-navy">
-                    {{ circle.current_quantity|floatformat:0 }} / {{ circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}
-                </span>
-                <span class="text-xs text-slate-400 font-bold">Target Progress</span>
+        <!-- Supplier Insights -->
+        <div class="bg-slate-50/50 rounded-[2rem] border border-slate-100 p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Supplier Credentials</h3>
+                
             </div>
-
-            <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500
-                    {% if circle.progress_percentage >= 100 %}bg-sb-green{% else %}bg-sb-teal{% endif %}"
-                    style="width: {{ circle.progress_percentage }}%;">
+            
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-sb-navy flex items-center justify-center text-white font-black text-lg">
+                    {{ circle.product.business.business_name|slice:":1" }}
+                </div>
+                <div>
+                    <p class="font-black text-sb-navy text-base">{{ circle.product.business.business_name }}</p>
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                        <i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i> {{ circle.product.business.location|default:"Global Supplier" }}
+                    </p>
                 </div>
             </div>
+            <p class="text-xs text-slate-400 mt-4 leading-relaxed italic">
+                "Specializing in {{ circle.product.business.business_type|default:"Industrial Materials" }} and large-scale fulfillment logistics."
+            </p>
+        </div>
 
-            {% if circle.is_reached %}
-                <p class="text-xs font-bold text-sb-green">Target reached — purchase order sent to supplier.</p>
-            {% elif circle.progress_percentage == 0 %}
-                <p class="text-xs font-semibold text-slate-400">No demand collected yet. Be the first to join!</p>
-            {% else %}
-                <p class="text-xs font-semibold text-slate-400">
-                    Still {{ circle.target_quantity|floatformat:0|add:"-"|add:circle.current_quantity|floatformat:0 }} {{ circle.product.unit }} away from the target.
-                </p>
-            {% endif %}
+        <!-- Strategic Value Card -->
+        <div class="bg-sb-navy rounded-[2rem] p-8 text-white">
+            <div class="flex items-center gap-3 mb-4">
+                <i data-lucide="zap" class="w-5 h-5 text-sb-green"></i>
+                <h3 class="text-xs font-black uppercase tracking-widest">Why Aggregate Here?</h3>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                By joining this circle, you bypass traditional retail premiums. Aggregating demand allows us to unlock **Tier 1 Supply Pricing**, reducing your procurement cost by an estimated <span class="text-sb-green font-bold">15-20%</span> compared to direct small-order purchases.
+            </p>
         </div>
     </div>
 
-    <div class="grid {% if is_enterprise %}grid-cols-1 md:grid-cols-2{% else %}grid-cols-1 max-w-xl mx-auto w-full{% endif %} gap-6 lg:gap-8">
+    <!-- RIGHT: Actions & Members -->
+    <div class="space-y-6">
+      
+      <!-- Join Logic -->
+      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+        {% if is_member and circle.status == 'Open' %}
+            <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Your Position</h2>
+            <p class="text-sm text-slate-600 font-medium mb-1">
+              You have committed <span class="font-black text-sb-navy">{{ user_membership.requested_quantity|floatformat:"-2" }} {{ circle.product.unit }}</span>.
+            </p>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">Leaving will reduce the aggregate total and potentially delay fulfillment.</p>
+            <form method="POST" action="{% url 'operations:circle_leave' circle.pk %}">
+              {% csrf_token %}
+              <button type="submit" onclick="return confirm('Leave this buying circle?');" class="w-full h-14 rounded-2xl border border-red-200 text-red-500 text-sm font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Withdraw Request</button>
+            </form>
 
-        {% if is_enterprise %}
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
-            <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
-                Members ({{ members.count }})
-            </h2>
+        {% elif can_join %}
+            <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Secure Allocation</h2>
+            <form id="join-form" method="POST" action="{% url 'operations:circle_join' circle.pk %}">
+              {% csrf_token %}
+              <div class="space-y-5">
+                <div>
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Requested Volume ({{ circle.product.unit }})</label>
+                  {{ join_form.requested_quantity }} 
+                  {% if join_form.requested_quantity.errors %}
+                    <p class="mt-1 text-xs text-red-500 font-bold">{{ join_form.requested_quantity.errors.0 }}</p>
+                  {% endif %}
+                </div>
+                <button type="submit" class="w-full h-14 bg-sb-navy text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:text-sb-navy hover:shadow-glow transition-all">
+                    Commit to Buy
+                </button>
+              </div>
+            </form>
 
-            {% if members %}
-            <ul class="space-y-4">
-                {% for m in members %}
-                <li class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 border-b border-slate-50 last:border-0">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-sb-neutral flex items-center justify-center text-sb-navy font-black text-sm shrink-0">
-                            {{ m.business.business_name|slice:":1"|upper }}
-                        </div>
-                        <div class="min-w-0">
-                            <p class="font-bold text-sb-navy text-sm truncate">{{ m.business.business_name }}</p>
-                            {% if circle.created_by == m.business %}
-                                <p class="text-[9px] font-black text-sb-green uppercase tracking-widest">Circle Starter</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <span class="text-base font-black text-sb-navy">
-                        {{ m.requested_quantity|floatformat:0 }} <span class="text-xs font-medium text-slate-400">{{ circle.product.unit }}</span>
-                    </span>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-sm text-slate-400 font-medium">No members yet.</p>
-            {% endif %}
-        </div>
+        {% elif circle.status != 'Open' %}
+            <div class="text-center py-4">
+                <i data-lucide="lock" class="w-10 h-10 text-slate-200 mx-auto mb-3"></i>
+                <h3 class="font-black text-sb-navy">Aggregation Closed</h3>
+                <p class="text-xs text-slate-400 mt-1">This slot is now fully committed and moving to fulfillment.</p>
+            </div>
         {% endif %}
+      </div>
 
-        <div class="space-y-6">
-
-            {% if is_member and circle.status == 'Open' %}
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
-                <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Your Membership</h2>
-                <p class="text-sm text-slate-600 font-medium mb-1">
-                    You have committed
-                    <span class="font-black text-sb-navy">{{ user_membership.requested_quantity|floatformat:0 }} {{ circle.product.unit }}</span>.
-                </p>
-                <p class="text-xs text-slate-400 mb-6 leading-relaxed">Leaving will remove your quantity from the circle total.</p>
-
-                <form method="POST" action="{% url 'operations:circle_leave' circle.pk %}">
-                    {% csrf_token %}
-                    <button type="submit"
-                        onclick="return confirm('Leave this buying circle?')"
-                        class="w-full h-14 rounded-2xl border border-red-200 text-red-500 text-sm font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
-                        Leave Circle
-                    </button>
-                </form>
+      <!-- Members List -->
+      {% if is_enterprise %}
+      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+        <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Participants ({{ members.count }})</h2>
+        {% if members %}
+        <ul class="space-y-4">
+          {% for m in members %}
+          <li class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+            <div class="min-w-0">
+              <p class="font-bold text-sb-navy text-xs truncate">{{ m.business.business_name }}</p>
+              <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Share: {{ m.requested_quantity|floatformat:0 }} {{ circle.product.unit }}</p>
             </div>
-
-            {% elif can_join %}
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10">
-                <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Join This Circle</h2>
-                <p class="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
-                    Enter how much <span class="font-bold text-sb-navy">{{ circle.product.unit }}</span> you need.
-                    Once the group reaches <span class="font-bold text-sb-navy">{{ circle.target_quantity|floatformat:0 }} {{ circle.product.unit }}</span>,
-                    the order goes to the supplier automatically.
-                </p>
-
-                <form id="join-form" method="POST" action="{% url 'operations:circle_join' circle.pk %}">
-                    {% csrf_token %}
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">
-                                Quantity ({{ circle.product.unit }})
-                            </label>
-                            {{ join_form.requested_quantity }}
-                            {% if join_form.requested_quantity.errors %}
-                                <p class="mt-1 text-xs text-red-500 font-bold">{{ join_form.requested_quantity.errors.0 }}</p>
-                            {% endif %}
-                            <p class="mt-2 text-[10px] text-slate-400 font-medium leading-relaxed">
-                                Remaining capacity:
-                                <span class="font-black text-sb-navy">{{ circle.target_quantity|floatformat:0|add:"0" }}</span>
-                                &minus;
-                                <span class="font-black text-sb-navy">{{ circle.current_quantity|floatformat:0|add:"0" }}</span>
-                                =
-                                <span class="font-black text-sb-green" id="remaining-qty">—</span>
-                                {{ circle.product.unit }}
-                            </p>
-                        </div>
-
-                        <button type="submit" class="w-full h-14 bg-sb-navy text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-sb-green hover:shadow-glow transition-all">
-                            Join Circle
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            {% elif is_member and circle.status != 'Open' %}
-            <div class="bg-sb-green/5 rounded-[2rem] border border-sb-green/20 p-6 sm:p-8 lg:p-10 text-center">
-                <i data-lucide="check-circle-2" class="w-10 h-10 text-sb-green mx-auto mb-3"></i>
-                <h3 class="font-black text-sb-navy text-lg">Circle Closed</h3>
-                <p class="text-sm text-slate-500 mt-2 font-medium leading-relaxed">The target was reached. A purchase order has been placed with the supplier.</p>
-            </div>
-
-            {% elif circle.status != 'Open' %}
-            <div class="bg-gray-50 rounded-[2rem] border border-slate-100 p-6 sm:p-8 lg:p-10 text-center">
-                <i data-lucide="lock" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
-                <h3 class="font-black text-sb-navy text-lg">Circle Closed</h3>
-                <p class="text-sm text-slate-400 mt-2 font-medium leading-relaxed">This circle is no longer accepting new members.</p>
-                <a href="{% url 'operations:marketplace' %}" class="mt-6 h-12 inline-flex items-center justify-center text-[10px] font-black text-sb-teal uppercase tracking-widest hover:text-sb-navy transition-colors">
-                    Browse Marketplace →
-                </a>
-            </div>
-
-            {% else %}
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 lg:p-10 text-center">
-                <i data-lucide="info" class="w-10 h-10 text-slate-200 mx-auto mb-3"></i>
-                <p class="text-sm text-slate-400 font-medium leading-relaxed">
-                    {% if not user %}
-                        <a href="{% url 'accounts:login' %}" class="font-black text-sb-teal hover:text-sb-navy">Log in</a> to join this circle.
-                    {% else %}
-                        Only Small Business accounts can join buying circles.
-                    {% endif %}
-                </p>
-            </div>
+            {% if circle.created_by == m.business %}
+                <i data-lucide="crown" class="w-3.5 h-3.5 text-sb-green shrink-0"></i>
             {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+            <p class="text-xs text-slate-400 font-medium italic">Establishing initial demand...</p>
+        {% endif %}
+      </div>
+      {% endif %}
 
-        </div>
     </div>
-
+  </div>
 </div>
 
 {% if can_join %}
 <script>
-(function () {
-    var target  = {{ circle.target_quantity }};
-    var current = {{ circle.current_quantity }};
-    var remaining = target - current;
-    var unit    = "{{ circle.product.unit }}";
+  (function () {
+      var remaining = {{ circle.remaining_quantity }};
+      var unit = "{{ circle.product.unit }}";
+      var form = document.getElementById('join-form');
+      var input = document.getElementById('id_requested_quantity');
+      if (!form || !input) return;
 
-    var remainingEl = document.getElementById('remaining-qty');
-    if (remainingEl) remainingEl.textContent = remaining.toLocaleString();
-
-    var form  = document.getElementById('join-form');
-    var input = document.getElementById('id_requested_quantity');
-    if (!form || !input) return;
-
-    form.addEventListener('submit', function (e) {
-        var val = parseFloat(input.value);
-        if (isNaN(val) || val <= 0) return;
-
-        if (val > remaining) {
-            e.preventDefault();
-            var total = current + val;
-            Swal.fire({
-                icon: 'warning',
-                title: 'Quantity Exceeds Remaining Capacity',
-                html:
-                    'You entered <strong>' + val.toLocaleString() + ' ' + unit + '</strong>, ' +
-                    'but only <strong>' + remaining.toLocaleString() + ' ' + unit + '</strong> remains to reach the target.<br><br>' +
-                    'Joining with this quantity will close the circle immediately and send a purchase order to the supplier.',
-                confirmButtonText: 'Yes, Join & Close Circle',
-                confirmButtonColor: '#0a3658',
-                cancelButtonText: 'Let me adjust',
-                showCancelButton: true,
-                cancelButtonColor: '#6b7280',
-            }).then(function (result) {
-                if (result.isConfirmed) form.submit();
-            });
-        }
-    });
-})();
+      form.addEventListener('submit', function (e) {
+          var val = parseFloat(input.value);
+          if (isNaN(val) || val <= 0) return;
+          if (val > remaining) {
+              e.preventDefault();
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Inventory Threshold Exceeded',
+                  html: 'You requested <strong>' + val + ' ' + unit + '</strong>, but the target gap is only <strong>' + remaining + ' ' + unit + '</strong>.<br><br>Proceeding will close this aggregation window immediately.',
+                  confirmButtonText: 'Finalize & Close',
+                  confirmButtonColor: '#0a3658',
+                  showCancelButton: true,
+              }).then(function (result) {
+                  if (result.isConfirmed) form.submit();
+              });
+          }
+      });
+  })();
 </script>
-{% endif %}
+{% endif %} 
 {% endblock %}
